@@ -1,0 +1,78 @@
+[
+  {
+    "id": "new-iphone-15-128-test",
+    "model": "iPhone 15",
+    "storageGb": 128,
+    "condition": "NEW",
+    "priceCop": 3699000,
+    "warrantyDays": 365,
+    "imeiVerified": true,
+    "componentsChecked": [],
+    "available": true,
+    "isTestData": true
+  },
+  {
+    "id": "new-iphone-16-128-test",
+    "model": "iPhone 16",
+    "storageGb": 128,
+    "condition": "NEW",
+    "priceCop": 4499000,
+    "warrantyDays": 365,
+    "imeiVerified": true,
+    "componentsChecked": [],
+    "available": true,
+    "isTestData": true
+  },
+  {
+    "id": "used-iphone-12-128-test",
+    "model": "iPhone 12",
+    "storageGb": 128,
+    "condition": "CERTIFIED_USED",
+    "priceCop": 1650000,
+    "batteryHealth": 88,
+    "warrantyDays": 90,
+    "imeiVerified": true,
+    "componentsChecked": ["pantalla", "cámaras", "micrófono", "carga"],
+    "available": true,
+    "isTestData": true
+  },
+  {
+    "id": "used-iphone-13-128-test",
+    "model": "iPhone 13",
+    "storageGb": 128,
+    "condition": "CERTIFIED_USED",
+    "priceCop": 2250000,
+    "batteryHealth": 91,
+    "warrantyDays": 90,
+    "imeiVerified": true,
+    "componentsChecked": ["pantalla", "cámaras", "micrófono", "carga", "Face ID"],
+    "available": true,
+    "isTestData": true
+  },
+  {
+    "id": "used-iphone-14-128-test",
+    "model": "iPhone 14",
+    "storageGb": 128,
+    "condition": "CERTIFIED_USED",
+    "priceCop": 2850000,
+    "batteryHealth": 93,
+    "warrantyDays": 120,
+    "imeiVerified": true,
+    "componentsChecked": ["pantalla", "cámaras", "micrófono", "carga", "Face ID"],
+    "available": true,
+    "isTestData": true
+  },
+  {
+    "id": "used-iphone-13-256-test-unavailable",
+    "model": "iPhone 13",
+    "storageGb": 256,
+    "condition": "CERTIFIED_USED",
+    "priceCop": 2550000,
+    "batteryHealth": 90,
+    "warrantyDays": 90,
+    "imeiVerified": true,
+    "componentsChecked": ["pantalla", "cámaras", "micrófono", "carga", "Face ID"],
+    "available": false,
+    "isTestData": true
+  }
+]

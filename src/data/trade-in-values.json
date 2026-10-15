@@ -1,0 +1,30 @@
+[
+  {
+    "model": "iPhone 11",
+    "storageGb": 64,
+    "estimatedValueCop": 650000,
+    "requiresInspection": true,
+    "isTestData": true
+  },
+  {
+    "model": "iPhone 12",
+    "storageGb": 128,
+    "estimatedValueCop": 950000,
+    "requiresInspection": true,
+    "isTestData": true
+  },
+  {
+    "model": "iPhone 13",
+    "storageGb": 128,
+    "estimatedValueCop": 1350000,
+    "requiresInspection": true,
+    "isTestData": true
+  },
+  {
+    "model": "iPhone 14",
+    "storageGb": 128,
+    "estimatedValueCop": 1850000,
+    "requiresInspection": true,
+    "isTestData": true
+  }
+]

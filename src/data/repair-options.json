@@ -1,0 +1,34 @@
+[
+  {
+    "id": "repair-battery-test",
+    "label": "Revisión y posible cambio de batería",
+    "failureCategory": "BATTERY",
+    "estimatedCostCop": 280000,
+    "requiresDiagnosis": true,
+    "isTestData": true
+  },
+  {
+    "id": "repair-screen-test",
+    "label": "Revisión y posible reparación de pantalla",
+    "failureCategory": "SCREEN",
+    "estimatedCostCop": 520000,
+    "requiresDiagnosis": true,
+    "isTestData": true
+  },
+  {
+    "id": "repair-camera-test",
+    "label": "Diagnóstico del sistema de cámaras",
+    "failureCategory": "CAMERA",
+    "estimatedCostCop": 430000,
+    "requiresDiagnosis": true,
+    "isTestData": true
+  },
+  {
+    "id": "repair-charging-test",
+    "label": "Diagnóstico del sistema de carga",
+    "failureCategory": "CHARGING",
+    "estimatedCostCop": 250000,
+    "requiresDiagnosis": true,
+    "isTestData": true
+  }
+]
