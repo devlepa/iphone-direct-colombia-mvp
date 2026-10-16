@@ -5,10 +5,13 @@ export const BUSINESS_RULES = {
   requireInspectionForTradeIn: true,
   requireHumanReviewForRepair: true,
   scoring: {
+    matchesObjective: 40,
     withinBudget: 30,
     matchesPriority: 20,
     verifiedWarranty: 15,
     reducesNetCostWithTradeIn: 10,
+    economicalRepair: 20,
+    acceptsCertifiedUsed: 8,
     pendingDiagnosis: -10,
     overBudget: -30,
   },
