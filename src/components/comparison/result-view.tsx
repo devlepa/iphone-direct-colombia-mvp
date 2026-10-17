@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
+import {
+  getDeviceByProductId,
+  getDeviceDetails,
+  getDeviceImage,
+} from "@/data/device-catalog";
 import type {
   RecommendationAlternative,
   RecommendationOption,
@@ -41,7 +47,7 @@ function CostSummary({ option }: { option: RecommendationAlternative }) {
             : "No aplica"}
         </dd>
       </div>
-      <div className="bg-[color:var(--lime)] p-5">
+      <div className="bg-[color:var(--surface-bright)] p-5">
         <dt className="text-xs font-black uppercase tracking-[0.14em] text-[color:var(--ink)]/55">
           Desembolso neto
         </dt>
@@ -64,48 +70,63 @@ function AlternativeCard({
     option: alternative.option,
     sessionId,
   });
+  const device = getDeviceByProductId(alternative.productId);
+  const productImage = device ? getDeviceImage(device.model) : undefined;
 
   return (
-    <article className="flex h-full flex-col rounded-3xl border border-[color:var(--line)] bg-white p-6">
-      <p className="text-xs font-black uppercase tracking-[0.14em] text-[color:var(--brand)]">
-        {optionLabels[alternative.option]}
-      </p>
-      <h3 className="mt-3 text-2xl font-extrabold tracking-[-0.03em] text-[color:var(--ink)]">
-        {alternative.label}
-      </h3>
-      <p className="mt-5 text-sm font-bold uppercase tracking-[0.1em] text-[color:var(--muted)]">
-        Costo neto estimado
-      </p>
-      <p className="mt-1 text-2xl font-black text-[color:var(--ink)]">
-        {formatCop(alternative.estimatedNetCostCop)}
-      </p>
-      <ul className="mt-5 flex-1 space-y-3 text-sm leading-6 text-[color:var(--muted)]">
-        {alternative.reasons.slice(0, 2).map((reason) => (
-          <li key={reason} className="flex gap-2">
-            <span className="text-[color:var(--brand)]" aria-hidden="true">
-              ✓
-            </span>
-            {reason}
-          </li>
-        ))}
-      </ul>
-      <a
-        href={url}
-        target="_blank"
-        rel="noreferrer"
-        onClick={() => {
-          trackEvent("alternative_selected", sessionId, {
-            option: alternative.option,
-          });
-          trackEvent("whatsapp_clicked", sessionId, {
-            option: alternative.option,
-            source: "alternative",
-          });
-        }}
-        className="mt-6 inline-flex min-h-12 items-center justify-center rounded-full border border-[color:var(--line-strong)] px-5 font-bold text-[color:var(--ink)] transition hover:border-[color:var(--brand)] hover:bg-[color:var(--lime)]/35"
-      >
-        Consultar esta alternativa
-      </a>
+    <article className="flex h-full flex-col overflow-hidden rounded-3xl border border-[color:var(--line)] bg-white">
+      {productImage && (
+        <div className="relative aspect-[16/8] bg-[color:var(--surface)]">
+          <Image
+            src={productImage.src}
+            alt={productImage.alt}
+            fill
+            sizes="(max-width: 768px) 100vw, 50vw"
+            className="object-contain p-4 grayscale"
+          />
+        </div>
+      )}
+      <div className="flex flex-1 flex-col p-6">
+        <p className="text-xs font-black uppercase tracking-[0.14em] text-[color:var(--accent)]">
+          {optionLabels[alternative.option]}
+        </p>
+        <h3 className="mt-3 text-2xl font-extrabold tracking-[-0.03em] text-[color:var(--ink)]">
+          {alternative.label}
+        </h3>
+        <p className="mt-5 text-sm font-bold uppercase tracking-[0.1em] text-[color:var(--muted)]">
+          Costo neto estimado
+        </p>
+        <p className="mt-1 text-2xl font-black text-[color:var(--ink)]">
+          {formatCop(alternative.estimatedNetCostCop)}
+        </p>
+        <ul className="mt-5 flex-1 space-y-3 text-sm leading-6 text-[color:var(--muted)]">
+          {alternative.reasons.slice(0, 2).map((reason) => (
+            <li key={reason} className="flex gap-2">
+              <span className="text-[color:var(--accent)]" aria-hidden="true">
+                ✓
+              </span>
+              {reason}
+            </li>
+          ))}
+        </ul>
+        <a
+          href={url}
+          target="_blank"
+          rel="noreferrer"
+          onClick={() => {
+            trackEvent("alternative_selected", sessionId, {
+              option: alternative.option,
+            });
+            trackEvent("whatsapp_clicked", sessionId, {
+              option: alternative.option,
+              source: "alternative",
+            });
+          }}
+          className="mt-6 inline-flex min-h-12 items-center justify-center rounded-full border border-[color:var(--line-strong)] px-5 font-bold text-[color:var(--ink)] transition hover:border-[color:var(--accent)] hover:bg-[color:var(--surface)]"
+        >
+          Consultar esta alternativa
+        </a>
+      </div>
     </article>
   );
 }
@@ -136,8 +157,8 @@ export function ResultView() {
   if (!record) {
     return (
       <div className="mx-auto flex w-full max-w-3xl flex-1 items-center px-5 py-20 sm:px-8">
-        <div className="w-full rounded-[2rem] border border-[color:var(--line)] bg-white p-8 text-center shadow-[0_25px_80px_rgba(12,31,26,0.08)] sm:p-12">
-          <span className="mx-auto grid size-16 place-items-center rounded-full bg-[color:var(--lime)] text-2xl font-black">
+        <div className="w-full rounded-[2rem] border border-[color:var(--line)] bg-white p-8 text-center shadow-[0_25px_80px_rgba(0,0,0,0.08)] sm:p-12">
+          <span className="mx-auto grid size-16 place-items-center rounded-full bg-[color:var(--surface-bright)] text-2xl font-black">
             ?
           </span>
           <h1 className="mt-6 font-display text-4xl font-semibold tracking-[-0.04em]">
@@ -148,7 +169,7 @@ export function ResultView() {
           </p>
           <Link
             href="/guia"
-            className="mt-7 inline-flex min-h-12 items-center justify-center rounded-full bg-[color:var(--brand)] px-7 font-extrabold text-white"
+            className="mt-7 inline-flex min-h-12 items-center justify-center rounded-full bg-[color:var(--accent)] px-7 font-extrabold text-white"
           >
             Completar la guía
           </Link>
@@ -158,6 +179,13 @@ export function ResultView() {
   }
 
   const { recommendation } = record;
+  const recommendedDevice = getDeviceByProductId(recommendation.productId);
+  const recommendedImage = recommendedDevice
+    ? getDeviceImage(recommendedDevice.model)
+    : undefined;
+  const currentDeviceDetails = record.input.currentDevice
+    ? getDeviceDetails(record.input.currentDevice.model)
+    : undefined;
   const sessionId = record.input.profile.sessionId;
   const whatsappUrl = buildWhatsAppUrl({
     option: recommendation.primaryOption,
@@ -185,21 +213,27 @@ export function ResultView() {
         <div>
           <p className="eyebrow">Resultado de la guía</p>
           <p className="mt-2 text-sm text-[color:var(--muted)]">
-            Sesión {sessionId.slice(0, 8)} · generado con datos de prueba
+            Sesión {sessionId.slice(0, 8)} · resultado orientativo
           </p>
         </div>
         <Link
           href="/guia"
-          className="rounded-full border border-[color:var(--line-strong)] bg-white px-5 py-2.5 text-sm font-bold text-[color:var(--ink)] hover:border-[color:var(--brand)]"
+          className="rounded-full border border-[color:var(--line-strong)] bg-white px-5 py-2.5 text-sm font-bold text-[color:var(--ink)] hover:border-[color:var(--accent)]"
         >
           Revisar respuestas
         </Link>
       </div>
 
-      <section className="overflow-hidden rounded-[2.25rem] bg-[color:var(--ink)] p-5 text-white shadow-[0_35px_100px_rgba(12,31,26,0.22)] sm:p-8 lg:p-10">
-        <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
+      <section className="overflow-hidden rounded-[2.25rem] bg-[color:var(--ink)] p-5 text-white shadow-[0_35px_100px_rgba(0,0,0,0.22)] sm:p-8 lg:p-10">
+        <div
+          className={
+            recommendedImage
+              ? "grid gap-8 lg:grid-cols-[1fr_17rem] lg:items-center"
+              : "flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between"
+          }
+        >
           <div className="max-w-3xl">
-            <p className="text-xs font-black uppercase tracking-[0.17em] text-[color:var(--lime)]">
+            <p className="text-xs font-black uppercase tracking-[0.17em] text-[color:var(--surface-bright)]">
               Recomendación principal · {optionLabels[recommendation.primaryOption]}
             </p>
             <h1 className="mt-4 font-display text-4xl leading-[0.98] font-semibold tracking-[-0.045em] sm:text-6xl">
@@ -210,16 +244,88 @@ export function ResultView() {
               disponibilidad deben confirmarse con un asesor.
             </p>
           </div>
-          {recommendation.requiresHumanReview && (
-            <span className="shrink-0 self-start rounded-full border border-[color:var(--lime)]/35 bg-[color:var(--lime)]/10 px-4 py-2 text-xs font-black uppercase tracking-[0.13em] text-[color:var(--lime)]">
-              Requiere revisión humana
-            </span>
-          )}
+          <div className="flex flex-col gap-3">
+            {recommendedImage && (
+              <div className="relative aspect-square overflow-hidden rounded-2xl border border-white/15 bg-white">
+                <Image
+                  src={recommendedImage.src}
+                  alt={recommendedImage.alt}
+                  fill
+                  priority
+                  sizes="(max-width: 1024px) 100vw, 17rem"
+                  className="object-contain p-4 grayscale"
+                />
+              </div>
+            )}
+            {recommendation.requiresHumanReview && (
+              <span className="self-start rounded-full border border-white/25 bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-[0.13em] text-white">
+                Requiere revisión humana
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="mt-9">
           <CostSummary option={recommendation} />
         </div>
+
+        {record.input.currentDevice && recommendation.productId && (
+          <div className="mt-7 overflow-hidden rounded-2xl border border-white/15 bg-white/[0.055]">
+            <div className="grid gap-3 p-5 sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:p-6">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.14em] text-white/45">
+                  Tu equipo actual
+                </p>
+                <p className="mt-2 text-xl font-extrabold text-white">
+                  {record.input.currentDevice.model}
+                </p>
+              </div>
+              <span className="hidden text-2xl text-white/35 sm:block" aria-hidden="true">
+                →
+              </span>
+              <div className="sm:text-right">
+                <p className="text-xs font-black uppercase tracking-[0.14em] text-white/45">
+                  Salto recomendado
+                </p>
+                <p className="mt-2 text-xl font-extrabold text-white">
+                  {recommendation.label}
+                </p>
+              </div>
+            </div>
+
+            {currentDeviceDetails && recommendedDevice && (
+              <dl className="grid border-t border-white/10 sm:grid-cols-3">
+                {[
+                  [
+                    "Generación",
+                    `iPhone ${currentDeviceDetails.generation}`,
+                    `iPhone ${recommendedDevice.generation}`,
+                  ],
+                  ["Categoría", currentDeviceDetails.category, recommendedDevice.category],
+                  [
+                    "Capacidad base",
+                    `${currentDeviceDetails.storageGb} GB`,
+                    `${recommendedDevice.storageGb} GB`,
+                  ],
+                ].map(([label, currentValue, recommendedValue]) => (
+                  <div
+                    key={label}
+                    className="border-b border-white/10 p-5 last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0"
+                  >
+                    <dt className="text-[10px] font-black uppercase tracking-[0.14em] text-white/40">
+                      {label}
+                    </dt>
+                    <dd className="mt-2 text-sm text-white/55">
+                      <span className="line-through decoration-white/30">{currentValue}</span>
+                      <span className="mx-2 text-white/30">→</span>
+                      <strong className="text-white">{recommendedValue}</strong>
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            )}
+          </div>
+        )}
 
         <div className="mt-9 grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
           <div>
@@ -230,7 +336,7 @@ export function ResultView() {
                   key={reason}
                   className="flex gap-3 rounded-2xl border border-white/10 bg-white/[0.045] p-4 text-sm leading-6 text-white/75"
                 >
-                  <span className="text-[color:var(--lime)]" aria-hidden="true">
+                  <span className="text-[color:var(--surface-bright)]" aria-hidden="true">
                     ✓
                   </span>
                   {reason}
@@ -256,7 +362,7 @@ export function ResultView() {
             target="_blank"
             rel="noreferrer"
             onClick={trackPrimaryAction}
-            className="inline-flex min-h-14 items-center justify-center gap-3 rounded-full bg-[color:var(--lime)] px-7 font-black text-[color:var(--ink)] transition hover:-translate-y-0.5 hover:bg-white"
+            className="inline-flex min-h-14 items-center justify-center gap-3 rounded-full bg-[color:var(--surface-bright)] px-7 font-black text-[color:var(--ink)] transition hover:-translate-y-0.5 hover:bg-white"
           >
             Continuar por WhatsApp
             <span aria-hidden="true">↗</span>
@@ -287,8 +393,8 @@ export function ResultView() {
         </section>
       )}
 
-      <section className="rounded-3xl border border-[color:var(--line)] bg-[color:var(--peach)]/35 p-6 sm:p-8">
-        <p className="text-xs font-black uppercase tracking-[0.14em] text-[color:var(--brand-dark)]">
+      <section className="rounded-3xl border border-[color:var(--line)] bg-[color:var(--surface-muted)]/35 p-6 sm:p-8">
+        <p className="text-xs font-black uppercase tracking-[0.14em] text-[color:var(--accent-hover)]">
           Importante
         </p>
         <p className="mt-3 max-w-4xl text-base leading-7 text-[color:var(--ink)]/75">

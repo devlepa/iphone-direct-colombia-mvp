@@ -198,3 +198,74 @@ test("rechaza respuestas incompletas antes de generar la recomendación", () => 
 
   assert.equal(parsed.success, false);
 });
+
+test("si el cliente tiene un 15 Pro Max solo recomienda un salto superior", () => {
+  const upgradeProducts: Product[] = [
+    {
+      id: "same-15-pro-max",
+      model: "iPhone 15 Pro Max",
+      storageGb: 256,
+      condition: "CERTIFIED_USED",
+      priceCop: 2_000_000,
+      batteryHealth: 95,
+      warrantyDays: 120,
+      imeiVerified: true,
+      componentsChecked: ["pantalla", "cámaras"],
+      available: true,
+      isTestData: true,
+    },
+    {
+      id: "lower-tier-16-pro",
+      model: "iPhone 16 Pro",
+      storageGb: 128,
+      condition: "NEW",
+      priceCop: 3_000_000,
+      warrantyDays: 365,
+      imeiVerified: true,
+      componentsChecked: [],
+      available: true,
+      isTestData: true,
+    },
+    {
+      id: "upgrade-16-pro-max",
+      model: "iPhone 16 Pro Max",
+      storageGb: 256,
+      condition: "NEW",
+      priceCop: 5_000_000,
+      warrantyDays: 365,
+      imeiVerified: true,
+      componentsChecked: [],
+      available: true,
+      isTestData: true,
+    },
+  ];
+  const device15ProMax: NonNullable<AdvisorInput["currentDevice"]> = {
+    ...currentDevice,
+    model: "iPhone 15 Pro Max",
+    storageGb: 256,
+  };
+
+  const result = generateRecommendation(
+    {
+      profile: profile({
+        budgetCop: 5_500_000,
+        acceptsCertifiedUsed: true,
+        priority: "PERFORMANCE",
+      }),
+      currentDevice: device15ProMax,
+    },
+    { ...catalogs, products: upgradeProducts },
+  );
+  const options = [result, ...result.alternatives];
+
+  assert.equal(result.productId, "upgrade-16-pro-max");
+  assert.equal(
+    options.some((option) => option.productId === "same-15-pro-max"),
+    false,
+  );
+  assert.equal(
+    options.some((option) => option.productId === "lower-tier-16-pro"),
+    false,
+  );
+  assert.ok(result.reasons.some((reason) => reason.includes("salto real")));
+});

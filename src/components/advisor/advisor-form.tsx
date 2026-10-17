@@ -13,9 +13,13 @@ import type {
   DeviceCondition,
   DeviceFailure,
 } from "@/domain/device";
-import productsData from "@/data/products.json";
 import repairOptionsData from "@/data/repair-options.json";
 import tradeInValuesData from "@/data/trade-in-values.json";
+import {
+  buildProductCatalog,
+  buildTradeInCatalog,
+  currentIPhoneModels,
+} from "@/data/device-catalog";
 import {
   advisorInputSchema,
   productSchema,
@@ -75,9 +79,11 @@ const emptyForm: AdvisorFormState = {
 };
 
 const catalogs: AdvisorCatalogs = {
-  products: productSchema.array().parse(productsData),
+  products: productSchema.array().parse(buildProductCatalog()),
   repairOptions: repairOptionSchema.array().parse(repairOptionsData),
-  tradeInValues: tradeInValueSchema.array().parse(tradeInValuesData),
+  tradeInValues: tradeInValueSchema
+    .array()
+    .parse([...buildTradeInCatalog(), ...tradeInValuesData]),
 };
 
 const objectiveOptions: {
@@ -129,7 +135,7 @@ const failureOptions: { value: DeviceFailure; label: string }[] = [
 ];
 
 const inputClassName =
-  "mt-2 min-h-12 w-full rounded-2xl border border-[color:var(--line-strong)] bg-white px-4 text-[color:var(--ink)] outline-none transition placeholder:text-[color:var(--muted)]/55 focus:border-[color:var(--brand)] focus:ring-4 focus:ring-[color:var(--brand)]/10";
+  "mt-2 min-h-12 w-full rounded-2xl border border-[color:var(--line-strong)] bg-white px-4 text-[color:var(--ink)] outline-none transition placeholder:text-[color:var(--muted)]/55 focus:border-[color:var(--accent)] focus:ring-4 focus:ring-[color:var(--accent)]/10";
 
 function createSessionId() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -167,16 +173,16 @@ function ChoiceButton({
       aria-pressed={active}
       className={
         active
-          ? "flex min-h-20 w-full items-start gap-4 rounded-2xl border-2 border-[color:var(--brand)] bg-[color:var(--lime)]/35 p-4 text-left shadow-[0_10px_30px_rgba(13,107,85,0.08)] transition"
-          : "flex min-h-20 w-full items-start gap-4 rounded-2xl border border-[color:var(--line-strong)] bg-white p-4 text-left transition hover:-translate-y-0.5 hover:border-[color:var(--brand)]"
+          ? "flex min-h-20 w-full items-start gap-4 rounded-2xl border-2 border-black bg-black p-4 text-left text-white shadow-[0_10px_30px_rgba(0,0,0,0.12)] transition"
+          : "flex min-h-20 w-full items-start gap-4 rounded-2xl border border-[color:var(--line-strong)] bg-white p-4 text-left transition hover:-translate-y-0.5 hover:border-[color:var(--accent)]"
       }
     >
       {icon && (
         <span
           className={
             active
-              ? "grid size-10 shrink-0 place-items-center rounded-xl bg-[color:var(--brand)] text-lg font-black text-white"
-              : "grid size-10 shrink-0 place-items-center rounded-xl bg-[color:var(--sand)] text-lg font-black text-[color:var(--ink)]"
+              ? "grid size-10 shrink-0 place-items-center rounded-xl bg-white text-lg font-black text-black"
+              : "grid size-10 shrink-0 place-items-center rounded-xl bg-[color:var(--surface)] text-lg font-black text-[color:var(--ink)]"
           }
           aria-hidden="true"
         >
@@ -184,9 +190,23 @@ function ChoiceButton({
         </span>
       )}
       <span>
-        <span className="block font-extrabold text-[color:var(--ink)]">{title}</span>
+        <span
+          className={
+            active
+              ? "block font-extrabold text-white"
+              : "block font-extrabold text-[color:var(--ink)]"
+          }
+        >
+          {title}
+        </span>
         {description && (
-          <span className="mt-1 block text-sm leading-6 text-[color:var(--muted)]">
+          <span
+            className={
+              active
+                ? "mt-1 block text-sm leading-6 text-white/65"
+                : "mt-1 block text-sm leading-6 text-[color:var(--muted)]"
+            }
+          >
             {description}
           </span>
         )}
@@ -403,16 +423,16 @@ export function AdvisorForm() {
         </div>
         <div className="mt-3 h-2 overflow-hidden rounded-full bg-[color:var(--line)]">
           <div
-            className="h-full rounded-full bg-[color:var(--brand)] transition-[width] duration-300"
+            className="h-full rounded-full bg-[color:var(--accent)] transition-[width] duration-300"
             style={{ width: progress + "%" }}
           />
         </div>
       </div>
 
-      <section className="rounded-[2rem] border border-[color:var(--line)] bg-[color:var(--paper)] p-5 shadow-[0_25px_80px_rgba(12,31,26,0.08)] sm:p-9">
+      <section className="rounded-[2rem] border border-[color:var(--line)] bg-white p-5 shadow-[0_22px_65px_rgba(0,0,0,0.07)] sm:p-9">
         {step === 1 && (
           <div>
-            <p className="text-sm font-bold text-[color:var(--brand)]">Tu necesidad</p>
+            <p className="text-sm font-bold text-[color:var(--accent)]">Tu necesidad</p>
             <h2 className="mt-2 text-3xl font-extrabold tracking-[-0.035em] text-[color:var(--ink)]">
               ¿Qué necesitas hacer con tu iPhone?
             </h2>
@@ -436,7 +456,7 @@ export function AdvisorForm() {
 
         {step === 2 && (
           <div>
-            <p className="text-sm font-bold text-[color:var(--brand)]">Tu contexto</p>
+            <p className="text-sm font-bold text-[color:var(--accent)]">Tu contexto</p>
             <h2 className="mt-2 text-3xl font-extrabold tracking-[-0.035em] text-[color:var(--ink)]">
               ¿Qué debe respetar la recomendación?
             </h2>
@@ -471,8 +491,8 @@ export function AdvisorForm() {
                       }
                       className={
                         form.primaryUse === option.value
-                          ? "min-h-12 rounded-xl border-2 border-[color:var(--brand)] bg-[color:var(--brand)] px-3 text-sm font-bold text-white"
-                          : "min-h-12 rounded-xl border border-[color:var(--line-strong)] bg-white px-3 text-sm font-bold text-[color:var(--ink)] hover:border-[color:var(--brand)]"
+                          ? "min-h-12 rounded-xl border-2 border-[color:var(--accent)] bg-[color:var(--accent)] px-3 text-sm font-bold text-white"
+                          : "min-h-12 rounded-xl border border-[color:var(--line-strong)] bg-white px-3 text-sm font-bold text-[color:var(--ink)] hover:border-[color:var(--accent)]"
                       }
                     >
                       {option.label}
@@ -549,7 +569,7 @@ export function AdvisorForm() {
 
         {step === 3 && (
           <div>
-            <p className="text-sm font-bold text-[color:var(--brand)]">Tu equipo actual</p>
+            <p className="text-sm font-bold text-[color:var(--accent)]">Tu equipo actual</p>
             <h2 className="mt-2 text-3xl font-extrabold tracking-[-0.035em] text-[color:var(--ink)]">
               ¿Tienes un iPhone para revisar o entregar?
             </h2>
@@ -586,12 +606,11 @@ export function AdvisorForm() {
                     }
                   >
                     <option value="">Selecciona el modelo</option>
-                    <option value="iPhone 11">iPhone 11</option>
-                    <option value="iPhone 12">iPhone 12</option>
-                    <option value="iPhone 13">iPhone 13</option>
-                    <option value="iPhone 14">iPhone 14</option>
-                    <option value="iPhone 15">iPhone 15</option>
-                    <option value="Otro iPhone">Otro iPhone</option>
+                    {currentIPhoneModels.map((model) => (
+                      <option key={model} value={model}>
+                        {model}
+                      </option>
+                    ))}
                   </select>
                 </label>
 
@@ -609,6 +628,8 @@ export function AdvisorForm() {
                     <option value="128">128 GB</option>
                     <option value="256">256 GB</option>
                     <option value="512">512 GB</option>
+                    <option value="1024">1 TB</option>
+                    <option value="2048">2 TB</option>
                   </select>
                 </label>
 
@@ -702,8 +723,8 @@ export function AdvisorForm() {
                         onClick={() => toggleFailure(failure.value)}
                         className={
                           form.knownFailures.includes(failure.value)
-                            ? "rounded-full bg-[color:var(--brand)] px-4 py-2 text-sm font-bold text-white"
-                            : "rounded-full border border-[color:var(--line-strong)] bg-white px-4 py-2 text-sm font-bold text-[color:var(--ink)] hover:border-[color:var(--brand)]"
+                            ? "rounded-full bg-[color:var(--accent)] px-4 py-2 text-sm font-bold text-white"
+                            : "rounded-full border border-[color:var(--line-strong)] bg-white px-4 py-2 text-sm font-bold text-[color:var(--ink)] hover:border-[color:var(--accent)]"
                         }
                       >
                         {failure.label}
@@ -734,8 +755,8 @@ export function AdvisorForm() {
                         }
                         className={
                           form.previousRepairs === option.value
-                            ? "rounded-full bg-[color:var(--brand)] px-4 py-2 text-sm font-bold text-white"
-                            : "rounded-full border border-[color:var(--line-strong)] bg-white px-4 py-2 text-sm font-bold text-[color:var(--ink)] hover:border-[color:var(--brand)]"
+                            ? "rounded-full bg-[color:var(--accent)] px-4 py-2 text-sm font-bold text-white"
+                            : "rounded-full border border-[color:var(--line-strong)] bg-white px-4 py-2 text-sm font-bold text-[color:var(--ink)] hover:border-[color:var(--accent)]"
                         }
                       >
                         {option.label}
@@ -750,12 +771,12 @@ export function AdvisorForm() {
 
         {step === 4 && (
           <div>
-            <p className="text-sm font-bold text-[color:var(--brand)]">Revisión</p>
+            <p className="text-sm font-bold text-[color:var(--accent)]">Revisión</p>
             <h2 className="mt-2 text-3xl font-extrabold tracking-[-0.035em] text-[color:var(--ink)]">
               Todo listo para comparar.
             </h2>
             <p className="mt-3 text-[color:var(--muted)]">
-              Procesaremos las respuestas con reglas explícitas y datos simulados.
+              Procesaremos las respuestas con reglas explícitas y precios referenciales.
             </p>
 
             <dl className="mt-8 grid gap-px overflow-hidden rounded-2xl border border-[color:var(--line)] bg-[color:var(--line)] sm:grid-cols-2">
@@ -777,7 +798,7 @@ export function AdvisorForm() {
               ))}
             </dl>
 
-            <div className="mt-6 rounded-2xl bg-[color:var(--sand)] p-5 text-sm leading-6 text-[color:var(--muted)]">
+            <div className="mt-6 rounded-2xl bg-[color:var(--surface)] p-5 text-sm leading-6 text-[color:var(--muted)]">
               No guardamos IMEI, documentos, datos financieros ni contraseñas. La información
               permanece temporalmente en este navegador durante la validación local.
             </div>
@@ -787,7 +808,7 @@ export function AdvisorForm() {
         {error && (
           <p
             role="alert"
-            className="mt-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-800"
+            className="mt-6 rounded-2xl border border-black bg-neutral-100 px-4 py-3 text-sm font-semibold text-black"
           >
             {error}
           </p>
@@ -798,7 +819,7 @@ export function AdvisorForm() {
             <button
               type="button"
               onClick={goBack}
-              className="min-h-12 rounded-full border border-[color:var(--line-strong)] bg-white px-6 font-bold text-[color:var(--ink)] hover:border-[color:var(--brand)]"
+              className="min-h-12 rounded-full border border-[color:var(--line-strong)] bg-white px-6 font-bold text-[color:var(--ink)] hover:border-[color:var(--accent)]"
             >
               ← Volver
             </button>
@@ -812,7 +833,7 @@ export function AdvisorForm() {
             <button
               type="button"
               onClick={goNext}
-              className="min-h-12 rounded-full bg-[color:var(--ink)] px-7 font-extrabold text-white transition hover:-translate-y-0.5 hover:bg-[color:var(--brand-dark)]"
+              className="min-h-12 rounded-full bg-[color:var(--ink)] px-7 font-extrabold text-white transition hover:-translate-y-0.5 hover:bg-[color:var(--accent-hover)]"
             >
               Continuar →
             </button>
@@ -821,7 +842,7 @@ export function AdvisorForm() {
               type="button"
               onClick={submitGuide}
               disabled={isSubmitting}
-              className="min-h-12 rounded-full bg-[color:var(--brand)] px-7 font-extrabold text-white transition hover:-translate-y-0.5 hover:bg-[color:var(--brand-dark)] disabled:cursor-wait disabled:opacity-60"
+              className="min-h-12 rounded-full bg-[color:var(--accent)] px-7 font-extrabold text-white transition hover:-translate-y-0.5 hover:bg-[color:var(--accent-hover)] disabled:cursor-wait disabled:opacity-60"
             >
               {isSubmitting ? "Comparando alternativas…" : "Ver mi recomendación →"}
             </button>

@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     template: "%s | iPhone Direct Colombia",
   },
   description:
-    "Compara comprar nuevo, elegir un usado certificado, reparar o entregar tu iPhone como parte de pago.",
+    "Encuentra tu mejor actualización entre iPhone 13 y iPhone 18 Pro Max con precios aproximados y una recomendación explicada.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

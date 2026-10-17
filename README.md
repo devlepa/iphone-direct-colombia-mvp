@@ -1,5 +1,7 @@
 # iPhone Direct Colombia — MVP local
 
+> Para instalar y ejecutar el proyecto consulta la [guía técnica y de ejecución](docs/guia-tecnica-y-ejecucion.md).
+
 Repositorio para diseñar, construir y validar localmente el MVP de **iPhone Direct Colombia**, una plataforma de renovación guiada que ayuda al cliente a comparar cuatro alternativas:
 
 1. Comprar un iPhone nuevo sellado.

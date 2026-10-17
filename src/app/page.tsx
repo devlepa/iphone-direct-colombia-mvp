@@ -1,31 +1,7 @@
+import Image from "next/image";
 import Link from "next/link";
-
-const decisionRoutes = [
-  {
-    number: "01",
-    title: "Nuevo sellado",
-    detail: "Garantía y mayor horizonte de uso.",
-    highlighted: false,
-  },
-  {
-    number: "02",
-    title: "Usado certificado",
-    detail: "Menor inversión con evidencia técnica.",
-    highlighted: true,
-  },
-  {
-    number: "03",
-    title: "Reparar",
-    detail: "Conservar tu equipo si todavía conviene.",
-    highlighted: false,
-  },
-  {
-    number: "04",
-    title: "Trade-in",
-    detail: "Usar tu equipo para reducir el desembolso.",
-    highlighted: false,
-  },
-];
+import { deviceCatalog, getDeviceImage } from "@/data/device-catalog";
+import { formatCop } from "@/lib/currency";
 
 const journey = [
   {
@@ -45,134 +21,131 @@ const journey = [
   },
 ];
 
+const catalogSummary = [13, 14, 15, 16, 17, 18].map((generation) => {
+  const devices = deviceCatalog.filter((device) => device.generation === generation);
+  const certifiedPrices = devices.flatMap((device) =>
+    device.certifiedUsedPriceCop === null ? [] : [device.certifiedUsedPriceCop],
+  );
+  const representative = devices.at(-1)!;
+
+  return {
+    generation,
+    variants: devices.length,
+    startingPrice:
+      certifiedPrices.length > 0
+        ? Math.min(...certifiedPrices)
+        : Math.min(...devices.map((device) => device.newPriceCop)),
+    priceCondition: certifiedPrices.length > 0 ? "Usado certificado" : "Nuevo",
+    image: getDeviceImage(representative.model),
+  };
+});
+
 export default function Home() {
+  const featuredDevice = deviceCatalog.find(
+    (device) => device.model === "iPhone 18 Pro Max",
+  )!;
+  const featuredImage = getDeviceImage(featuredDevice.model)!;
+
   return (
     <main className="overflow-hidden">
-      <section className="hero-grid relative isolate border-b border-[color:var(--line)]">
-        <div className="absolute left-[8%] top-24 -z-10 size-56 rounded-full bg-[color:var(--lime)]/35 blur-3xl" />
-        <div className="absolute bottom-10 right-[10%] -z-10 size-72 rounded-full bg-[color:var(--peach)]/25 blur-3xl" />
-
-        <div className="mx-auto grid min-h-[calc(100svh-4.5rem)] w-full max-w-7xl items-center gap-14 px-5 py-16 sm:px-8 lg:grid-cols-[1.03fr_0.97fr] lg:py-20">
+      <section className="hero-grid border-b border-[color:var(--line)]">
+        <div className="mx-auto grid min-h-[calc(100svh-4.5rem)] w-full max-w-7xl items-center gap-12 px-5 py-14 sm:px-8 lg:grid-cols-[1.02fr_0.98fr] lg:py-20">
           <div className="max-w-3xl">
-            <p className="mb-7 inline-flex items-center gap-2 rounded-full border border-[color:var(--line-strong)] bg-white/70 px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] text-[color:var(--brand-dark)]">
-              <span className="size-2 rounded-full bg-[color:var(--brand)]" />
-              Decide con contexto, no por impulso
+            <p className="mb-7 inline-flex items-center gap-2 rounded-full border border-[color:var(--line-strong)] bg-white px-3 py-2 text-xs font-black uppercase tracking-[0.17em] text-black">
+              <span className="size-2 rounded-full bg-black" />
+              Compra mejor. No simplemente más nuevo.
             </p>
-            <h1 className="max-w-4xl text-balance font-display text-[clamp(3.25rem,8vw,7.25rem)] leading-[0.88] font-semibold tracking-[-0.065em] text-[color:var(--ink)]">
-              Tu próximo iPhone empieza por una{" "}
-              <span className="relative whitespace-nowrap text-[color:var(--brand)]">
-                mejor decisión.
-                <svg
-                  className="absolute -bottom-2 left-0 w-full text-[color:var(--lime-strong)]"
-                  viewBox="0 0 420 24"
-                  fill="none"
-                  aria-hidden="true"
-                >
-                  <path
-                    d="M5 17C110 5 284 4 415 12"
-                    stroke="currentColor"
-                    strokeWidth="9"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </span>
+            <h1 className="max-w-4xl text-balance font-display text-[clamp(3.35rem,7.4vw,7rem)] leading-[0.87] font-semibold tracking-[-0.067em] text-black">
+              Tu próximo iPhone debe ser un salto real.
             </h1>
-            <p className="mt-9 max-w-2xl text-lg leading-8 text-[color:var(--muted)] sm:text-xl">
-              Compara comprar nuevo, elegir un usado certificado, reparar o
-              entregar tu equipo como parte de pago. La guía organiza tus
-              opciones y te explica por qué una puede convenirte más.
+            <p className="mt-8 max-w-2xl text-lg leading-8 text-[color:var(--muted)] sm:text-xl">
+              Comparamos tu equipo actual con 23 modelos, sus precios y su categoría.
+              Si tienes un iPhone 15 Pro Max, solo te mostraremos opciones que de verdad lo
+              superen y te explicaremos por qué.
             </p>
-            <div className="mt-9 flex flex-col gap-4 sm:flex-row sm:items-center">
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link
                 href="/guia"
-                className="group inline-flex min-h-14 items-center justify-center gap-3 rounded-full bg-[color:var(--brand)] px-7 text-base font-extrabold text-white shadow-[0_16px_40px_rgba(13,107,85,0.2)] transition hover:-translate-y-1 hover:bg-[color:var(--brand-dark)]"
+                className="group inline-flex min-h-14 items-center justify-center gap-3 rounded-full bg-black px-7 text-base font-extrabold text-white transition hover:-translate-y-0.5 hover:bg-neutral-800"
               >
-                Encontrar mi mejor ruta
-                <span
-                  className="grid size-7 place-items-center rounded-full bg-white/15 transition-transform group-hover:translate-x-1"
-                  aria-hidden="true"
-                >
+                Encontrar mi mejor opción
+                <span aria-hidden="true" className="transition-transform group-hover:translate-x-1">
                   →
                 </span>
               </Link>
-              <a
-                href="#como-funciona"
-                className="inline-flex min-h-14 items-center justify-center rounded-full border border-[color:var(--line-strong)] bg-white/60 px-6 font-bold text-[color:var(--ink)] transition hover:bg-white"
+              <Link
+                href="/catalogo"
+                className="inline-flex min-h-14 items-center justify-center rounded-full border border-black bg-white px-6 font-bold text-black transition hover:bg-neutral-100"
               >
-                Ver cómo funciona
-              </a>
+                Ver modelos y precios
+              </Link>
             </div>
-            <p className="mt-5 text-sm text-[color:var(--muted)]">
-              Sin registro · Sin pagos · Valores de prueba claramente identificados
-            </p>
+            <dl className="mt-10 grid grid-cols-3 border-y border-[color:var(--line-strong)] py-5">
+              {[
+                ["23", "modelos"],
+                ["6", "generaciones"],
+                ["1", "recomendación clara"],
+              ].map(([value, label]) => (
+                <div key={label} className="border-r border-[color:var(--line)] px-3 first:pl-0 last:border-0">
+                  <dd className="text-2xl font-black text-black sm:text-3xl">{value}</dd>
+                  <dt className="mt-1 text-xs font-bold uppercase tracking-[0.08em] text-[color:var(--muted)]">
+                    {label}
+                  </dt>
+                </div>
+              ))}
+            </dl>
           </div>
 
           <div className="relative mx-auto w-full max-w-xl">
-            <div className="absolute -left-8 top-16 hidden rotate-[-9deg] rounded-2xl border border-[color:var(--line)] bg-[color:var(--lime)] px-5 py-3 text-sm font-black text-[color:var(--ink)] shadow-lg sm:block">
-              4 rutas. Una decisión clara.
-            </div>
-            <div className="decision-panel relative overflow-hidden rounded-[2.25rem] border border-white/70 bg-[color:var(--ink)] p-3 shadow-[0_40px_100px_rgba(12,31,26,0.25)]">
-              <div className="rounded-[1.75rem] border border-white/10 bg-[#102a24] p-5 sm:p-7">
-                <div className="flex items-start justify-between gap-5 border-b border-white/10 pb-5">
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--lime)]">
-                      Vista de ejemplo
-                    </p>
-                    <h2 className="mt-2 text-2xl font-bold tracking-[-0.03em] text-white">
-                      Mapa de decisión
-                    </h2>
-                  </div>
-                  <span className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-white/70">
-                    Datos ilustrativos
-                  </span>
-                </div>
+            <div className="decision-panel relative min-h-[34rem] overflow-hidden rounded-[1.75rem] bg-black shadow-[0_28px_75px_rgba(0,0,0,0.2)] sm:min-h-[41rem]">
+              <div className="absolute inset-x-5 top-5 z-10 flex items-center justify-between gap-4 sm:inset-x-7 sm:top-7">
+                <span className="rounded-full border border-white/20 bg-black/60 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.15em] text-white backdrop-blur">
+                  Gama más reciente
+                </span>
+                <Image
+                  src="/brand/iphone-direct-colombia.png"
+                  alt="iPhone Direct Colombia"
+                  width={1254}
+                  height={1254}
+                  priority
+                  className="-my-16 h-auto w-24 sm:w-28"
+                />
+              </div>
 
-                <div className="mt-6 space-y-3">
-                  {decisionRoutes.map((route) => (
-                    <div
-                      key={route.number}
-                      className={
-                        route.highlighted
-                          ? "group flex items-center gap-4 rounded-2xl border border-[color:var(--lime)]/50 bg-[color:var(--lime)] p-4 text-[color:var(--ink)] transition"
-                          : "group flex items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.045] p-4 text-white transition hover:bg-white/[0.08]"
-                      }
-                    >
-                      <span
-                        className={
-                          route.highlighted
-                            ? "font-mono text-xs font-bold text-[color:var(--brand-dark)]"
-                            : "font-mono text-xs font-bold text-white/40"
-                        }
-                      >
-                        {route.number}
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="font-extrabold">{route.title}</p>
-                        <p
-                          className={
-                            route.highlighted
-                              ? "mt-1 text-sm text-[color:var(--ink)]/65"
-                              : "mt-1 text-sm text-white/55"
-                          }
-                        >
-                          {route.detail}
-                        </p>
-                      </div>
-                      {route.highlighted && (
-                        <span className="rounded-full bg-[color:var(--ink)] px-3 py-1 text-[10px] font-black uppercase tracking-wider text-white">
-                          Ejemplo
-                        </span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-5 flex items-center justify-between rounded-2xl bg-black/15 px-4 py-3 text-xs text-white/55">
-                  <span>Reglas visibles</span>
-                  <span>Costos comparables</span>
-                  <span>Revisión humana</span>
+              <Image
+                src={featuredImage.src}
+                alt={featuredImage.alt}
+                fill
+                priority
+                sizes="(max-width: 1024px) 100vw, 48vw"
+                className="object-contain px-6 pb-28 pt-16 grayscale sm:px-10 sm:pb-32"
+              />
+
+              <div className="absolute inset-x-4 bottom-4 rounded-[1.25rem] border border-white/15 bg-black/75 p-5 text-white backdrop-blur-xl sm:inset-x-6 sm:bottom-6 sm:p-6">
+                <div className="flex items-end justify-between gap-5">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.16em] text-white/50">
+                      Destacado
+                    </p>
+                    <h2 className="mt-2 text-2xl font-black tracking-[-0.035em]">
+                      {featuredDevice.model}
+                    </h2>
+                    <p className="mt-2 text-sm text-white/55">{featuredDevice.highlight}</p>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-white/45">
+                      Desde
+                    </p>
+                    <p className="mt-1 text-lg font-black">
+                      {formatCop(featuredDevice.newPriceCop)}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
+            <p className="mt-3 text-center text-xs text-[color:var(--muted)]">
+              Fotografía oficial de Apple, presentada en escala de grises.
+            </p>
           </div>
         </div>
       </section>
@@ -196,7 +169,7 @@ export default function Home() {
                   key={item.step}
                   className="grid gap-3 border-b border-[color:var(--line-strong)] py-8 sm:grid-cols-[4rem_0.8fr_1.2fr] sm:items-start"
                 >
-                  <span className="font-mono text-sm font-bold text-[color:var(--brand)]">
+                  <span className="font-mono text-sm font-bold text-[color:var(--accent)]">
                     {item.step}
                   </span>
                   <h3 className="text-xl font-extrabold tracking-[-0.02em] text-[color:var(--ink)]">
@@ -210,9 +183,79 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="border-y border-[color:var(--line)] bg-[color:var(--sand)]">
+      <section className="border-y border-[color:var(--line)] bg-[color:var(--canvas)]">
+        <div className="mx-auto w-full max-w-7xl px-5 py-24 sm:px-8 lg:py-28">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="eyebrow">Catálogo ampliado</p>
+              <h2 className="mt-5 max-w-3xl font-display text-5xl leading-[0.95] font-semibold tracking-[-0.055em] text-black sm:text-6xl">
+                Seis generaciones. Cada categoría importante.
+              </h2>
+            </div>
+            <p className="max-w-md text-base leading-7 text-[color:var(--muted)]">
+              Consulta referencias nuevas y usadas certificadas. Los precios son
+              aproximados y se confirman según capacidad, color y disponibilidad.
+            </p>
+          </div>
+
+          <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {catalogSummary.map((item) => (
+              <Link
+                key={item.generation}
+                href={`/catalogo#iphone-${item.generation}`}
+                className="group overflow-hidden rounded-[1.5rem] border border-[color:var(--line)] bg-white transition hover:-translate-y-1 hover:border-black hover:shadow-[0_18px_45px_rgba(0,0,0,0.08)]"
+              >
+                <div className="relative aspect-[16/10] overflow-hidden bg-[color:var(--surface)]">
+                  {item.image && (
+                    <Image
+                      src={item.image.src}
+                      alt={item.image.alt}
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      className="object-contain p-5 grayscale transition duration-500 group-hover:scale-[1.035]"
+                    />
+                  )}
+                  <span className="absolute right-4 top-4 rounded-full bg-black px-3 py-1 text-[10px] font-black uppercase tracking-[0.13em] text-white">
+                    {item.variants} variantes
+                  </span>
+                </div>
+                <div className="flex items-end justify-between gap-4 p-6">
+                  <div>
+                    <p className="font-display text-5xl font-semibold tracking-[-0.06em] text-black">
+                      {item.generation}
+                    </p>
+                    <p className="mt-3 text-[10px] font-black uppercase tracking-[0.14em] text-[color:var(--muted)]">
+                      {item.priceCondition} desde
+                    </p>
+                    <p className="mt-1 text-xl font-black tracking-[-0.03em] text-black">
+                      {formatCop(item.startingPrice)}
+                    </p>
+                  </div>
+                  <span className="grid size-10 place-items-center rounded-full border border-black text-lg transition group-hover:bg-black group-hover:text-white">
+                    →
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm leading-6 text-[color:var(--muted)]">
+              La gama 18 disponible incluye iPhone 18 Pro y iPhone 18 Pro Max.
+            </p>
+            <Link
+              href="/catalogo"
+              className="inline-flex min-h-12 items-center justify-center rounded-full bg-black px-6 font-black text-white transition hover:-translate-y-0.5 hover:bg-neutral-800"
+            >
+              Explorar todos los modelos →
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="border-y border-[color:var(--line)] bg-[color:var(--surface)]">
         <div className="mx-auto grid w-full max-w-7xl gap-10 px-5 py-24 sm:px-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:py-32">
-          <div className="relative min-h-[31rem] overflow-hidden rounded-[2.5rem] bg-[color:var(--peach)] p-7 sm:p-10">
+          <div className="relative min-h-[31rem] overflow-hidden rounded-[2.5rem] bg-[color:var(--surface-muted)] p-7 sm:p-10">
             <div className="absolute -right-16 -top-16 size-64 rounded-full border-[40px] border-white/25" />
             <p className="relative text-xs font-black uppercase tracking-[0.18em] text-[color:var(--ink)]/55">
               La pregunta central
@@ -224,7 +267,7 @@ export default function Home() {
               <p className="max-w-xs text-sm leading-6 text-[color:var(--ink)]/65">
                 Esa es la decisión que organiza el MVP.
               </p>
-              <div className="grid size-16 place-items-center rounded-full bg-[color:var(--ink)] text-2xl text-[color:var(--lime)]">
+              <div className="grid size-16 place-items-center rounded-full bg-[color:var(--ink)] text-2xl text-[color:var(--surface-bright)]">
                 ↘
               </div>
             </div>
@@ -243,7 +286,7 @@ export default function Home() {
                 "Una acción clara para continuar con revisión humana.",
               ].map((benefit, index) => (
                 <li key={benefit} className="flex items-start gap-4">
-                  <span className="grid size-8 shrink-0 place-items-center rounded-full bg-[color:var(--brand)] text-xs font-black text-white">
+                  <span className="grid size-8 shrink-0 place-items-center rounded-full bg-[color:var(--accent)] text-xs font-black text-white">
                     {index + 1}
                   </span>
                   <span className="pt-1 text-lg font-semibold leading-7 text-[color:var(--ink)]">
@@ -259,7 +302,7 @@ export default function Home() {
       <section id="transparencia" className="scroll-mt-24 bg-[color:var(--ink)] text-white">
         <div className="mx-auto grid w-full max-w-7xl gap-12 px-5 py-24 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:py-32">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-[color:var(--lime)]">
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-[color:var(--surface-bright)]">
               Transparencia desde el principio
             </p>
             <h2 className="mt-5 max-w-xl font-display text-5xl leading-[0.98] font-semibold tracking-[-0.05em] sm:text-6xl">
@@ -269,7 +312,10 @@ export default function Home() {
           <div className="grid gap-px overflow-hidden rounded-3xl border border-white/10 bg-white/10 sm:grid-cols-2">
             {[
               ["Datos mínimos", "No pedimos IMEI completo, documentos ni información de pago."],
-              ["Cifras de prueba", "Los valores del MVP están identificados como simulados."],
+              [
+                "Precios referenciales",
+                "Usamos precios aproximados de mercado y mostramos cuándo fueron verificados.",
+              ],
               ["Reglas explícitas", "Los criterios viven fuera de la interfaz y pueden auditarse."],
               ["Confirmación humana", "Toda reparación y retoma depende de una inspección."],
             ].map(([title, text]) => (
@@ -282,10 +328,10 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="bg-[color:var(--lime)]">
+      <section className="bg-[color:var(--surface-bright)]">
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-5 py-16 sm:px-8 lg:flex-row lg:items-center lg:justify-between lg:py-20">
           <div>
-            <p className="text-sm font-black uppercase tracking-[0.16em] text-[color:var(--brand-dark)]">
+            <p className="text-sm font-black uppercase tracking-[0.16em] text-[color:var(--accent-hover)]">
               Tu contexto cambia la respuesta
             </p>
             <h2 className="mt-3 max-w-3xl font-display text-4xl leading-none font-semibold tracking-[-0.045em] text-[color:var(--ink)] sm:text-5xl">
@@ -294,7 +340,7 @@ export default function Home() {
           </div>
           <Link
             href="/guia"
-            className="inline-flex min-h-14 shrink-0 items-center justify-center gap-3 rounded-full bg-[color:var(--ink)] px-7 font-extrabold text-white transition hover:-translate-y-1 hover:bg-[color:var(--brand-dark)]"
+            className="inline-flex min-h-14 shrink-0 items-center justify-center gap-3 rounded-full bg-[color:var(--ink)] px-7 font-extrabold text-white transition hover:-translate-y-1 hover:bg-[color:var(--accent-hover)]"
           >
             Comenzar mi guía
             <span aria-hidden="true">→</span>

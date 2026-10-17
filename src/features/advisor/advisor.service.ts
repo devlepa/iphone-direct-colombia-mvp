@@ -2,6 +2,12 @@ import { BUSINESS_RULES } from "@/config/business-rules";
 import type { CustomerProfile } from "@/domain/customer-profile";
 import type { CurrentDevice } from "@/domain/device";
 import type { Product } from "@/domain/product";
+import {
+  getDeviceDetails,
+  getUpgradeReasons,
+  getUpgradeScore,
+  isMeaningfulUpgrade,
+} from "@/data/device-catalog";
 import type {
   Recommendation,
   RecommendationAlternative,
@@ -9,7 +15,7 @@ import type {
 import type { AdvisorCatalogs, AdvisorInput } from "./advisor.types";
 
 const TEST_DATA_ASSUMPTION =
-  "Los valores son simulados y deben confirmarse con inventario, diagnóstico e inspección.";
+  "Los precios son referencias aproximadas de mercado; inventario, diagnóstico y valor final deben confirmarse.";
 
 function scoreBudget(costCop: number, profile: CustomerProfile) {
   return costCop <= profile.budgetCop
@@ -24,11 +30,15 @@ function budgetReason(costCop: number, profile: CustomerProfile) {
 }
 
 function matchesProductPriority(product: Product, profile: CustomerProfile) {
+  const device = getDeviceDetails(product.model);
+
   if (profile.priority === "WARRANTY") return product.warrantyDays >= 365;
   if (profile.priority === "PRICE") return product.condition === "CERTIFIED_USED";
-  if (profile.priority === "LONGEVITY") return product.condition === "NEW";
+  if (profile.priority === "LONGEVITY") {
+    return product.condition === "NEW" && (device?.generation ?? 0) >= 17;
+  }
   if (profile.priority === "CAMERA" || profile.priority === "PERFORMANCE") {
-    return /15|16/.test(product.model);
+    return device?.tier === "PRO" || device?.tier === "PRO_MAX";
   }
   return false;
 }
@@ -36,10 +46,18 @@ function matchesProductPriority(product: Product, profile: CustomerProfile) {
 function buildProductCandidate(
   product: Product,
   profile: CustomerProfile,
+  currentDevice?: CurrentDevice,
 ): RecommendationAlternative {
   const option = product.condition === "NEW" ? "NEW" : "CERTIFIED_USED";
-  const reasons = [budgetReason(product.priceCop, profile)];
+  const upgradeReasons = currentDevice
+    ? getUpgradeReasons(currentDevice.model, product.model)
+    : [];
+  const reasons = [...upgradeReasons, budgetReason(product.priceCop, profile)];
   let score = scoreBudget(product.priceCop, profile);
+
+  if (currentDevice) {
+    score += getUpgradeScore(currentDevice.model, product.model);
+  }
 
   if (profile.objective === "BUY" || profile.objective === "UNSURE") {
     score += BUSINESS_RULES.scoring.matchesObjective;
@@ -53,7 +71,9 @@ function buildProductCandidate(
 
   if (product.warrantyDays > 0) {
     score += BUSINESS_RULES.scoring.verifiedWarranty;
-    reasons.push(`Incluye ${product.warrantyDays} días de garantía en los datos de prueba.`);
+    reasons.push(
+      `La referencia del catálogo contempla ${product.warrantyDays} días de garantía; debe confirmarse con el vendedor.`,
+    );
   }
 
   if (product.condition === "CERTIFIED_USED" && profile.acceptsCertifiedUsed) {
@@ -67,7 +87,7 @@ function buildProductCandidate(
       product.condition === "CERTIFIED_USED" ? " usado certificado" : " nuevo"
     }`,
     score,
-    reasons: reasons.slice(0, 4),
+    reasons: reasons.slice(0, 5),
     assumptions: [TEST_DATA_ASSUMPTION],
     estimatedGrossCostCop: product.priceCop,
     estimatedTradeInCop: 0,
@@ -191,12 +211,14 @@ export function generateRecommendation(
   const availableProducts = catalogs.products.filter(
     (product) =>
       product.available &&
+      (!input.currentDevice ||
+        isMeaningfulUpgrade(input.currentDevice.model, product.model)) &&
       (product.condition === "NEW" ||
         (input.profile.acceptsCertifiedUsed &&
           (product.batteryHealth ?? 0) >= BUSINESS_RULES.minimumCertifiedBatteryHealth)),
   );
   const productCandidates = availableProducts.map((product) =>
-    buildProductCandidate(product, input.profile),
+    buildProductCandidate(product, input.profile, input.currentDevice),
   );
   const repairCandidate = buildRepairCandidate(input, catalogs);
   const tradeInCandidate = buildTradeInCandidate(input, productCandidates, catalogs);
