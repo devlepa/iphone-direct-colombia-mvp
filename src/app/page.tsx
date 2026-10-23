@@ -21,12 +21,24 @@ const journey = [
   },
 ];
 
-const catalogSummary = [13, 14, 15, 16, 17, 18].map((generation) => {
+const catalogGenerations = Array.from(
+  new Set(deviceCatalog.map((device) => device.generation)),
+).sort((first, second) => first - second);
+
+const catalogSummary = catalogGenerations.map((generation) => {
   const devices = deviceCatalog.filter((device) => device.generation === generation);
   const certifiedPrices = devices.flatMap((device) =>
-    device.certifiedUsedPriceCop === null ? [] : [device.certifiedUsedPriceCop],
+    device.certifiedUsedPriceCop === null ||
+    device.certifiedUsedStock === null ||
+    device.certifiedUsedStock <= 0
+      ? []
+      : [device.certifiedUsedPriceCop],
+  );
+  const newPrices = devices.flatMap((device) =>
+    device.newStock !== null && device.newStock > 0 ? [device.newPriceCop] : [],
   );
   const representative = devices.at(-1)!;
+  const hasAvailableReference = certifiedPrices.length > 0 || newPrices.length > 0;
 
   return {
     generation,
@@ -34,16 +46,52 @@ const catalogSummary = [13, 14, 15, 16, 17, 18].map((generation) => {
     startingPrice:
       certifiedPrices.length > 0
         ? Math.min(...certifiedPrices)
-        : Math.min(...devices.map((device) => device.newPriceCop)),
-    priceCondition: certifiedPrices.length > 0 ? "Usado certificado" : "Nuevo",
+        : newPrices.length > 0
+          ? Math.min(...newPrices)
+          : Math.min(...devices.map((device) => device.newPriceCop)),
+    priceLabel:
+      certifiedPrices.length > 0
+        ? "Usado certificado desde"
+        : hasAvailableReference
+          ? "Nuevo desde"
+          : "Precio de referencia · sin stock",
     image: getDeviceImage(representative.model),
   };
 });
 
+const devicesWithPotentialStock = deviceCatalog.filter(
+  (device) =>
+    (device.newStock !== null && device.newStock > 0) ||
+    (device.certifiedUsedPriceCop !== null &&
+      device.certifiedUsedStock !== null &&
+      device.certifiedUsedStock > 0),
+);
+const featuredDevice = [
+  ...(devicesWithPotentialStock.length > 0 ? devicesWithPotentialStock : deviceCatalog),
+].sort(
+  (first, second) =>
+    second.generation - first.generation ||
+    second.newPriceCop - first.newPriceCop,
+)[0];
+const latestGeneration = Math.max(...catalogGenerations);
+const latestModels = deviceCatalog
+  .filter((device) => device.generation === latestGeneration)
+  .map((device) => device.model);
+const featuredPrice =
+  (featuredDevice.newStock !== null && featuredDevice.newStock > 0) ||
+  featuredDevice.certifiedUsedPriceCop === null
+    ? featuredDevice.newPriceCop
+    : featuredDevice.certifiedUsedPriceCop;
+const featuredPriceLabel =
+  featuredDevice.newStock !== null && featuredDevice.newStock > 0
+    ? "Nuevo desde"
+    : featuredDevice.certifiedUsedPriceCop !== null &&
+        featuredDevice.certifiedUsedStock !== null &&
+        featuredDevice.certifiedUsedStock > 0
+      ? "Usado certificado desde"
+      : "Precio de referencia";
+
 export default function Home() {
-  const featuredDevice = deviceCatalog.find(
-    (device) => device.model === "iPhone 18 Pro Max",
-  )!;
   const featuredImage = getDeviceImage(featuredDevice.model)!;
 
   return (
@@ -59,7 +107,8 @@ export default function Home() {
               Tu próximo iPhone debe ser un salto real.
             </h1>
             <p className="mt-8 max-w-2xl text-lg leading-8 text-[color:var(--muted)] sm:text-xl">
-              Comparamos tu equipo actual con 23 modelos, sus precios y su categoría.
+              Comparamos tu equipo actual con {deviceCatalog.length} modelos, sus precios y
+              su categoría.
               Si tienes un iPhone 15 Pro Max, solo te mostraremos opciones que de verdad lo
               superen y te explicaremos por qué.
             </p>
@@ -82,8 +131,8 @@ export default function Home() {
             </div>
             <dl className="mt-10 grid grid-cols-3 border-y border-[color:var(--line-strong)] py-5">
               {[
-                ["23", "modelos"],
-                ["6", "generaciones"],
+                [String(deviceCatalog.length), "modelos"],
+                [String(catalogGenerations.length), "generaciones"],
                 ["1", "recomendación clara"],
               ].map(([value, label]) => (
                 <div key={label} className="border-r border-[color:var(--line)] px-3 first:pl-0 last:border-0">
@@ -134,17 +183,18 @@ export default function Home() {
                   </div>
                   <div className="shrink-0 text-right">
                     <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-white/45">
-                      Desde
+                      {featuredPriceLabel}
                     </p>
                     <p className="mt-1 text-lg font-black">
-                      {formatCop(featuredDevice.newPriceCop)}
+                      {formatCop(featuredPrice)}
                     </p>
                   </div>
                 </div>
               </div>
             </div>
             <p className="mt-3 text-center text-xs text-[color:var(--muted)]">
-              Fotografía oficial de Apple, presentada en escala de grises.
+              Fotografía de catálogo presentada en escala de grises. Consulta su fuente en
+              la ficha del modelo.
             </p>
           </div>
         </div>
@@ -189,7 +239,7 @@ export default function Home() {
             <div>
               <p className="eyebrow">Catálogo ampliado</p>
               <h2 className="mt-5 max-w-3xl font-display text-5xl leading-[0.95] font-semibold tracking-[-0.055em] text-black sm:text-6xl">
-                Seis generaciones. Cada categoría importante.
+                {catalogGenerations.length} generaciones. Cada categoría importante.
               </h2>
             </div>
             <p className="max-w-md text-base leading-7 text-[color:var(--muted)]">
@@ -225,7 +275,7 @@ export default function Home() {
                       {item.generation}
                     </p>
                     <p className="mt-3 text-[10px] font-black uppercase tracking-[0.14em] text-[color:var(--muted)]">
-                      {item.priceCondition} desde
+                      {item.priceLabel}
                     </p>
                     <p className="mt-1 text-xl font-black tracking-[-0.03em] text-black">
                       {formatCop(item.startingPrice)}
@@ -241,7 +291,7 @@ export default function Home() {
 
           <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm leading-6 text-[color:var(--muted)]">
-              La gama 18 disponible incluye iPhone 18 Pro y iPhone 18 Pro Max.
+              La generación {latestGeneration} incluye {latestModels.join(" y ")}.
             </p>
             <Link
               href="/catalogo"

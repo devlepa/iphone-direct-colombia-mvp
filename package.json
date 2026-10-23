@@ -3,12 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "catalog:sync": "node scripts/sync-catalog-inventory.mjs",
+    "catalog:check": "node scripts/sync-catalog-inventory.mjs --check",
+    "dev": "node scripts/dev-with-catalog.mjs",
+    "prebuild": "npm run catalog:sync",
     "build": "next build --webpack",
+    "prebuild:turbopack": "npm run catalog:sync",
     "build:turbopack": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --import tsx --test --test-isolation=none src/features/advisor/advisor.test.ts"
+    "pretest": "npm run catalog:sync",
+    "test": "node --import tsx --test --test-isolation=none src/features/advisor/advisor.test.ts src/features/advisor/recommendation-record.test.ts scripts/sync-catalog-inventory.test.mjs"
   },
   "dependencies": {
     "next": "16.4.1",

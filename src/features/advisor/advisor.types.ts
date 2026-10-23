@@ -19,4 +19,6 @@ export type RecommendationRecord = {
   input: AdvisorInput;
   recommendation: Recommendation;
   generatedAt: string;
+  /** Missing only on records saved by versions prior to catalog revisioning. */
+  catalogRevision?: string;
 };

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -12,15 +12,23 @@ import type {
   RecommendationAlternative,
   RecommendationOption,
 } from "@/domain/recommendation";
-import type { RecommendationRecord } from "@/features/advisor/advisor.types";
+import {
+  advisorCatalogRevision,
+  advisorCatalogs,
+} from "@/features/advisor/advisor.catalogs";
+import { resolveRecommendationRecord } from "@/features/advisor/recommendation-record";
 import { trackEvent } from "@/lib/analytics";
 import { formatCop } from "@/lib/currency";
-import { loadLocalValue, STORAGE_KEYS } from "@/lib/storage";
+import {
+  loadLocalValue,
+  saveLocalValue,
+  STORAGE_KEYS,
+} from "@/lib/storage";
 import { buildWhatsAppUrl } from "@/lib/whatsapp";
 import { useHydrated } from "@/lib/use-hydrated";
 
 const optionLabels: Record<RecommendationOption, string> = {
-  NEW: "Comprar nuevo",
+  NEW: "Comprar nuevo sellado",
   CERTIFIED_USED: "Elegir usado certificado",
   REPAIR: "Reparar el equipo actual",
   TRADE_IN: "Renovar mediante retoma",
@@ -133,20 +141,36 @@ function AlternativeCard({
 
 export function ResultView() {
   const isReady = useHydrated();
-  const [record] = useState<RecommendationRecord | null | undefined>(() => {
+  const [storedRecord] = useState<unknown | undefined>(() => {
     if (typeof window === "undefined") return undefined;
-    return loadLocalValue<RecommendationRecord>(STORAGE_KEYS.recommendation);
+    return loadLocalValue<unknown>(STORAGE_KEYS.recommendation);
   });
+  const resolution = useMemo(
+    () =>
+      storedRecord === undefined
+        ? null
+        : resolveRecommendationRecord(
+            storedRecord,
+            advisorCatalogs,
+            advisorCatalogRevision,
+          ),
+    [storedRecord],
+  );
 
   useEffect(() => {
-    if (isReady && record) {
-      trackEvent("recommendation_viewed", record.input.profile.sessionId, {
-        option: record.recommendation.primaryOption,
+    if (isReady && resolution?.status === "current") {
+      if (resolution.refreshed) {
+        saveLocalValue(STORAGE_KEYS.recommendation, resolution.record);
+      }
+
+      trackEvent("recommendation_viewed", resolution.record.input.profile.sessionId, {
+        option: resolution.record.recommendation.primaryOption,
+        catalogRefreshed: resolution.refreshed,
       });
     }
-  }, [isReady, record]);
+  }, [isReady, resolution]);
 
-  if (!isReady || record === undefined) {
+  if (!isReady || storedRecord === undefined || resolution === null) {
     return (
       <div className="mx-auto w-full max-w-6xl px-5 py-16 sm:px-8">
         <div className="h-[38rem] animate-pulse rounded-[2rem] bg-white/70" />
@@ -154,7 +178,7 @@ export function ResultView() {
     );
   }
 
-  if (!record) {
+  if (resolution.status === "missing") {
     return (
       <div className="mx-auto flex w-full max-w-3xl flex-1 items-center px-5 py-20 sm:px-8">
         <div className="w-full rounded-[2rem] border border-[color:var(--line)] bg-white p-8 text-center shadow-[0_25px_80px_rgba(0,0,0,0.08)] sm:p-12">
@@ -178,6 +202,33 @@ export function ResultView() {
     );
   }
 
+  if (resolution.status === "invalid") {
+    return (
+      <div className="mx-auto flex w-full max-w-3xl flex-1 items-center px-5 py-20 sm:px-8">
+        <div className="w-full rounded-[2rem] border border-[color:var(--line)] bg-white p-8 text-center shadow-[0_25px_80px_rgba(0,0,0,0.08)] sm:p-12">
+          <span className="mx-auto grid size-16 place-items-center rounded-full bg-[color:var(--surface-bright)] text-2xl font-black">
+            ↻
+          </span>
+          <h1 className="mt-6 font-display text-4xl font-semibold tracking-[-0.04em]">
+            El catálogo cambió.
+          </h1>
+          <p className="mx-auto mt-4 max-w-xl leading-7 text-[color:var(--muted)]">
+            No mostramos el resultado anterior porque podría contener un precio, una foto o
+            una disponibilidad que ya no están vigentes. Revisa tus respuestas para calcular
+            una recomendación con el inventario actual.
+          </p>
+          <Link
+            href="/guia"
+            className="mt-7 inline-flex min-h-12 items-center justify-center rounded-full bg-[color:var(--accent)] px-7 font-extrabold text-white"
+          >
+            Recalcular recomendación
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const { record } = resolution;
   const { recommendation } = record;
   const recommendedDevice = getDeviceByProductId(recommendation.productId);
   const recommendedImage = recommendedDevice
@@ -223,6 +274,16 @@ export function ResultView() {
           Revisar respuestas
         </Link>
       </div>
+
+      {resolution.refreshed && (
+        <div
+          role="status"
+          className="mb-7 rounded-2xl border border-[color:var(--line-strong)] bg-white px-5 py-4 text-sm leading-6 text-[color:var(--ink)]"
+        >
+          El inventario cambió desde tu última consulta. Recalculamos automáticamente esta
+          recomendación con los precios, fotos y disponibilidad vigentes.
+        </div>
+      )}
 
       <section className="overflow-hidden rounded-[2.25rem] bg-[color:var(--ink)] p-5 text-white shadow-[0_35px_100px_rgba(0,0,0,0.22)] sm:p-8 lg:p-10">
         <div

@@ -17,8 +17,9 @@ La aplicación es un MVP web que permite:
 - continuar la conversación mediante WhatsApp.
 
 La versión actual funciona sin base de datos ni un backend de negocio independiente. El
-catálogo y las reglas se encuentran en el repositorio, mientras que el progreso del
-visitante se almacena temporalmente en su navegador.
+catálogo y el inventario se administran en un CSV versionado dentro del repositorio, las
+reglas se encuentran en el código y el progreso del visitante se almacena temporalmente
+en su navegador.
 
 ## 2. Tecnologías utilizadas
 
@@ -45,12 +46,21 @@ visitante se almacena temporalmente en su navegador.
 | Turbopack | Incluido en Next.js | Compilador predeterminado durante el desarrollo y alternativa de compilación. |
 | Webpack | Incluido en Next.js | Compilador utilizado por `npm run build` para mayor compatibilidad. |
 
+### Catálogo e inventario
+
+| Tecnología | Uso |
+|---|---|
+| CSV UTF-8 | Fuente de verdad editable de modelos, características, precios, fotografías y stock. |
+| Scripts ECMAScript Modules de Node.js | Interpretan y validan el CSV y generan datos TypeScript determinísticos. |
+| `fs.watchFile` de Node.js | Observa el CSV durante `npm run dev` y lo vuelve a sincronizar al guardarlo. |
+| Datos TypeScript generados | Permiten que la interfaz y el motor de recomendación consuman un catálogo tipado. |
+
 ### Validación, pruebas y calidad
 
 | Tecnología | Versión del proyecto | Uso |
 |---|---:|---|
 | Zod | `4.6.7` o compatible | Validación de formularios, productos, reparaciones y retomas. |
-| Node Test Runner | Incluido en Node.js | Ejecución de pruebas unitarias del motor de recomendación. |
+| Node Test Runner | Incluido en Node.js | Ejecución de pruebas unitarias del motor de recomendación y del sincronizador de inventario. |
 | tsx | `4.23.15` o compatible | Ejecución directa de pruebas escritas en TypeScript. |
 | ESLint | `9.x` | Detección de errores y problemas de estilo en el código. |
 | eslint-config-next | `16.4.1` | Reglas recomendadas para Next.js y React. |
@@ -70,6 +80,14 @@ El proyecto utiliza el **App Router** de Next.js y separa la interfaz, el domini
 datos y las reglas de recomendación.
 
 ```text
+data/
+└── catalogo-inventario.csv       Fuente de verdad del catálogo e inventario
+public/
+├── brand/                       Logo de la marca
+└── products/                    Fotografías locales de los equipos
+scripts/
+├── dev-with-catalog.mjs         Observador del CSV y servidor de desarrollo
+└── sync-catalog-inventory.mjs   Analizador, validador y generador
 src/
 ├── app/                       Páginas, metadatos y estilos globales
 │   ├── page.tsx               Página de inicio
@@ -81,7 +99,7 @@ src/
 │   ├── comparison/            Presentación del resultado
 │   └── ui/                    Cabecera y pie de página
 ├── config/                    Umbrales y reglas configurables
-├── data/                      Catálogo, precios y valores estimados
+├── data/                      Adaptador del catálogo y archivo generado
 ├── domain/                    Tipos del negocio
 ├── features/advisor/          Validación y motor de recomendación
 └── lib/                       Utilidades de moneda, almacenamiento y WhatsApp
@@ -99,11 +117,25 @@ Inicio
   → contacto por WhatsApp
 ```
 
+El flujo del catálogo es independiente y determinístico:
+
+```text
+data/catalogo-inventario.csv
+  → validación y normalización
+  → src/data/device-inventory.generated.ts
+  → src/data/device-catalog.ts
+  → catálogo visible y opciones del motor de recomendación
+```
+
 ### Archivos importantes
 
 | Archivo | Responsabilidad |
 |---|---|
-| `src/data/device-catalog.ts` | Modelos, categorías, capacidades y precios aproximados. |
+| `data/catalogo-inventario.csv` | Fuente de verdad de modelos, categorías, capacidades, precios, fotos y existencias. |
+| `scripts/sync-catalog-inventory.mjs` | Analiza y valida el CSV y genera el inventario tipado. |
+| `scripts/dev-with-catalog.mjs` | Sincroniza el inventario, observa cambios e inicia Next.js en desarrollo. |
+| `src/data/device-inventory.generated.ts` | Resultado automático de la sincronización. No se edita manualmente. |
+| `src/data/device-catalog.ts` | Adapta el inventario generado a productos, retomas y recomendaciones. |
 | `src/features/advisor/advisor.service.ts` | Puntuación, filtros y selección de la recomendación. |
 | `src/features/advisor/advisor.schema.ts` | Validación de los datos de entrada con Zod. |
 | `src/config/business-rules.ts` | Umbrales comerciales configurables. |
@@ -112,7 +144,7 @@ Inicio
 | `src/lib/storage.ts` | Lectura y escritura segura en `localStorage`. |
 | `src/lib/whatsapp.ts` | Construcción del enlace de WhatsApp. |
 | `.env.example` | Plantilla de configuración local. |
-| `public/products/` | Fotografías oficiales de producto descargadas para servirlas localmente. |
+| `public/products/` | Fotografías de producto descargadas para servirlas localmente. |
 | `public/brand/` | Logo suministrado por iPhone Direct Colombia. |
 
 ## 4. Requisitos previos
@@ -197,18 +229,38 @@ Descripción de las variables:
 |---|---|
 | `NEXT_PUBLIC_APP_URL` | Dirección prevista para la aplicación. Está reservada para integraciones futuras y actualmente no se lee desde el código. |
 | `NEXT_PUBLIC_WHATSAPP_NUMBER` | Número de destino con código de país, sin `+`, espacios ni guiones. |
-| `NEXT_PUBLIC_ENABLE_TEST_DATA` | Bandera reservada para controlar datos de prueba. Actualmente el catálogo del MVP siempre está marcado como estimado. |
+| `NEXT_PUBLIC_ENABLE_TEST_DATA` | Bandera reservada que el código todavía no lee. No cambia ni invalida el inventario real del CSV; cualquier evidencia demostrativa futura debe vivir separada y quedar rotulada. |
 
 Las variables que comienzan por `NEXT_PUBLIC_` quedan disponibles en el navegador. No se
 deben guardar contraseñas, tokens privados ni otros secretos en ellas.
 
 El archivo `.env.local` está excluido de Git y no debe subirse al repositorio.
 
-### Paso 4. Iniciar el servidor de desarrollo
+### Paso 4. Sincronizar y comprobar el inventario
+
+```bash
+npm run catalog:sync
+npm run catalog:check
+```
+
+El primer comando valida `data/catalogo-inventario.csv` y genera
+`src/data/device-inventory.generated.ts`. El segundo comprueba que los datos sean válidos
+y que ambos archivos estén sincronizados, sin escribir cambios.
+
+### Paso 5. Iniciar el servidor de desarrollo
 
 ```bash
 npm run dev
 ```
+
+Este comando realiza otra sincronización inicial, inicia Next.js y observa el CSV. Si se
+guarda un cambio válido en `data/catalogo-inventario.csv`, el generador actualiza los datos
+tipados y Next.js refresca la aplicación. Si el cambio es inválido, la terminal muestra el
+problema y se conserva la última versión válida.
+
+Las recomendaciones almacenadas incluyen una revisión del catálogo. Al abrir `/resultado`
+después de cambiar precio, foto o stock, la aplicación recalcula el resultado con las
+respuestas guardadas; nunca presenta una recomendación anterior como si siguiera vigente.
 
 Cuando la terminal indique que el servidor está listo, abrir:
 
@@ -225,7 +277,7 @@ Rutas principales:
 | `http://localhost:3000/guia` | Cuestionario de recomendación. |
 | `http://localhost:3000/resultado` | Última recomendación guardada en el navegador. |
 
-### Paso 5. Probar el recorrido principal
+### Paso 6. Probar el recorrido principal
 
 1. Abrir la página de inicio.
 2. Entrar en **Iniciar guía**.
@@ -235,7 +287,7 @@ Rutas principales:
 6. Confirmar que el resultado explica el salto respecto al equipo actual.
 7. Probar el botón de WhatsApp y verificar el número configurado.
 
-### Paso 6. Detener el servidor
+### Paso 7. Detener el servidor
 
 Volver a la terminal y presionar:
 
@@ -245,6 +297,16 @@ Ctrl + C
 
 ## 6. Comandos de calidad
 
+### Comprobar el catálogo generado
+
+```bash
+npm run catalog:check
+```
+
+La comprobación falla si el CSV tiene encabezados o valores incorrectos, modelos
+duplicados, rutas de imagen inseguras o inexistentes, o si el archivo TypeScript generado
+no corresponde con el contenido actual del CSV.
+
 ### Ejecutar las pruebas unitarias
 
 ```bash
@@ -253,9 +315,11 @@ npm test
 
 Estas pruebas verifican, entre otros casos:
 
+- análisis, validación y generación segura del inventario CSV;
 - selección entre equipo nuevo y usado certificado;
 - reparación y retoma;
-- respeto del presupuesto;
+- manejo del presupuesto y de escenarios sin coincidencias; actualmente el motor penaliza
+  las opciones que lo exceden, pero todavía no siempre las descarta;
 - exclusión de inventario no disponible;
 - rechazo de respuestas incompletas;
 - recomendación de un modelo superior para quien ya tiene un iPhone 15 Pro Max.
@@ -272,7 +336,8 @@ npm run lint
 npx tsc --noEmit
 ```
 
-Antes de entregar cambios se recomienda ejecutar los tres comandos.
+Antes de entregar cambios se recomienda ejecutar `npm run catalog:check` y los tres
+comandos de calidad anteriores.
 
 ## 7. Compilación y ejecución de producción
 
@@ -289,6 +354,10 @@ restringidos. Para probar explícitamente la compilación con Turbopack se puede
 npm run build:turbopack
 ```
 
+Ambas variantes ejecutan primero `npm run catalog:sync`, por lo que una compilación nunca
+usa deliberadamente un catálogo generado que esté desactualizado. Si el CSV es inválido,
+la compilación se detiene antes de generar la aplicación.
+
 ### Paso 2. Iniciar la versión compilada
 
 ```bash
@@ -300,16 +369,23 @@ Abrir nuevamente `http://localhost:3000`.
 El comando `npm start` requiere que la compilación del paso anterior haya finalizado
 correctamente.
 
+En un entorno publicado, cambiar el CSV no modifica una compilación que ya está desplegada.
+Después de actualizar el inventario se debe ejecutar una nueva compilación y volver a
+desplegarla. La actualización automática al guardar existe únicamente mientras
+`npm run dev` está activo.
+
 ## 8. Scripts disponibles
 
 | Comando | Acción |
 |---|---|
-| `npm run dev` | Inicia Next.js en modo desarrollo. |
-| `npm run build` | Genera la compilación de producción. |
-| `npm run build:turbopack` | Genera la compilación alternativa con Turbopack. |
+| `npm run catalog:sync` | Valida el CSV y actualiza el inventario TypeScript generado. |
+| `npm run catalog:check` | Valida el CSV y comprueba la sincronización sin escribir archivos. |
+| `npm run dev` | Sincroniza el catálogo, inicia Next.js y observa cambios del CSV. |
+| `npm run build` | Sincroniza el catálogo y genera la compilación de producción con Webpack. |
+| `npm run build:turbopack` | Sincroniza el catálogo y genera la compilación alternativa con Turbopack. |
 | `npm start` | Ejecuta la compilación de producción. |
 | `npm run lint` | Revisa el código con ESLint. |
-| `npm test` | Ejecuta las pruebas del motor de recomendación. |
+| `npm test` | Sincroniza el catálogo y ejecuta sus pruebas junto con las del motor de recomendación. |
 
 ## 9. Datos y persistencia
 
@@ -317,7 +393,9 @@ La versión actual no utiliza una base de datos.
 
 Los datos se distribuyen así:
 
-- catálogo y precios estimados: archivos dentro de `src/data/`;
+- catálogo, precios, imágenes referenciadas y stock: `data/catalogo-inventario.csv`;
+- inventario normalizado para la aplicación: `src/data/device-inventory.generated.ts`, generado automáticamente;
+- adaptación a productos y retomas: `src/data/device-catalog.ts`;
 - reglas de negocio: `src/config/business-rules.ts`;
 - respuestas y resultado: `localStorage` del navegador;
 - eventos de validación: máximo de 100 eventos recientes en `localStorage`;
@@ -330,40 +408,88 @@ No se guardan IMEI completos, documentos, contraseñas ni información financier
 
 ## 10. Cómo actualizar el catálogo
 
-Los modelos y precios aproximados se administran en:
+Los modelos, características, precios, fotografías y existencias se administran únicamente
+en:
 
 ```text
-src/data/device-catalog.ts
+data/catalogo-inventario.csv
 ```
 
-Cada equipo define:
+Para el procedimiento operativo, ejemplos de stock y solución de errores consulta la
+[guía de uso del catálogo e inventario CSV](guia-uso-catalogo-inventario.md).
+
+`src/data/device-inventory.generated.ts` no se debe editar manualmente, porque el
+sincronizador lo reemplaza con el resultado del CSV. Cada fila del inventario define:
 
 - modelo y generación;
-- categoría;
+- nivel y categoría;
 - capacidad base;
 - precio nuevo aproximado;
 - precio usado certificado aproximado;
+- stock nuevo y usado certificado;
 - valor preliminar de retoma;
-- beneficio principal.
+- característica principal;
+- ruta, texto alternativo y fuente de la foto;
+- fecha de verificación.
 
-El mismo archivo también relaciona cada modelo con una fotografía local y con la página
-original de Apple Newsroom. Las fotografías se almacenan dentro de `public/products/` para
-evitar depender del CDN externo durante la navegación. La interfaz aplica escala de grises
-mediante CSS; el archivo original conserva los colores publicados por Apple.
+Los nombres `precio_usado_certificado_cop` y `stock_usado_certificado` pertenecen al
+contrato técnico actual. El CSV solo confirma inventario agregado; no contiene evidencia de
+batería, IMEI, componentes o garantía de una unidad, que debe permanecer pendiente hasta su
+inspección documentada.
 
-Los precios visibles se normalizaron a partir de referencias observadas en comercios y
-especialistas colombianos. La fecha de revisión vive en `catalogPriceReference`. Cuando se
-actualicen los precios también se debe actualizar esa fecha, comprobar la capacidad base y
-conservar `null` cuando no exista una referencia verificable de usado certificado. En la
-versión actual esto aplica a iPhone 18 Pro y iPhone 18 Pro Max.
+Los valores monetarios se escriben como enteros en pesos colombianos, sin signo `$`, puntos
+ni separadores. Una celda vacía en `precio_usado_certificado_cop` significa que todavía no
+existe una referencia para esa condición.
 
-Después de cambiar el catálogo se deben ejecutar:
+Las columnas de stock diferencian tres estados:
+
+| Valor | Interpretación |
+|---:|---|
+| Celda vacía | Stock sin registrar; la condición se excluye de todas las recomendaciones. |
+| `0` | Agotado; la condición se excluye de todas las recomendaciones. |
+| Entero positivo | Número de unidades disponibles; la condición puede participar en las recomendaciones. |
+
+`stock_nuevo` y `stock_usado_certificado` son independientes. Para ofrecer un modelo solo
+de segunda se configura `stock_nuevo` en `0` y un valor positivo en
+`stock_usado_certificado`. Para ofrecerlo únicamente nuevo se hace lo contrario. Cuando
+ambos valores son `0` o están vacíos, el modelo puede mantenerse como referencia visual,
+pero no entra en ninguna recomendación de compra o retoma.
+
+El archivo vigente ya contiene las cantidades reales suministradas para cada condición. Se
+deben descontar manualmente en el CSV después de cada venta. Al guardar `0`, la condición
+agotada deja de recomendarse; una celda vacía indica stock sin registrar y también se
+excluye del motor.
+
+Para cambiar una foto se debe copiar primero el archivo a `public/products/` y después
+escribir su ruta pública en `ruta_imagen`, por ejemplo `/products/iphone-15-pro.jpg`. La
+ruta debe apuntar a un archivo existente con extensión `.jpg`, `.jpeg`, `.png`, `.webp` o
+`.avif`. `fuente_imagen` conserva la URL HTTPS de origen y `texto_alternativo_imagen`
+describe la fotografía para accesibilidad. Al sustituir una foto se recomienda usar un
+nombre nuevo y actualizar `ruta_imagen`, para que la caché no conserve la versión anterior.
+
+Después de cambiar un precio se debe actualizar también `fecha_verificacion` con formato
+`AAAA-MM-DD`. Si un texto incluye comas, la celda se debe encerrar entre comillas dobles.
+Los encabezados no se deben renombrar ni reordenar y cada modelo debe ser único.
+
+Con el servidor de desarrollo activo basta con guardar el CSV: el observador ejecuta la
+sincronización y Next.js refleja el cambio. Fuera de ese flujo se debe ejecutar:
+
+```bash
+npm run catalog:sync
+npm run catalog:check
+```
+
+Después conviene ejecutar las validaciones generales:
 
 ```bash
 npm test
 npm run lint
 npx tsc --noEmit
 ```
+
+Para publicar cualquier cambio del CSV se requiere volver a ejecutar `npm run build` y
+desplegar la compilación resultante. El navegador no consulta ni modifica el CSV en tiempo
+real en producción.
 
 Los precios son referencias aproximadas, no ofertas. Antes de usarlos comercialmente se
 deben confirmar contra inventario real y actualizar las advertencias visibles de la
@@ -391,6 +517,20 @@ Luego abrir `http://localhost:3001`.
 
 Detener el servidor con `Ctrl + C` e iniciarlo nuevamente con `npm run dev`.
 
+### Un cambio del CSV no aparece o muestra un error
+
+Revisar el mensaje `[inventario]` de la terminal y ejecutar:
+
+```bash
+npm run catalog:sync
+npm run catalog:check
+```
+
+El mensaje identifica la fila y la columna inválidas. También se debe comprobar que toda
+`ruta_imagen` comience por `/products/` y corresponda a un archivo existente dentro de
+`public/products/`. El generador conserva la última versión válida si un cambio guardado
+durante el desarrollo no supera la validación.
+
 ### WhatsApp abre sin destinatario
 
 Revisar `NEXT_PUBLIC_WHATSAPP_NUMBER`. Debe incluir el código del país y solo números. Por
@@ -412,7 +552,7 @@ npm run build
 ## 12. Limitaciones actuales
 
 - Los precios y valores de retoma son aproximados.
-- El inventario no está sincronizado con proveedores.
+- El inventario se gestiona manualmente mediante CSV; no está sincronizado con proveedores ni es multiusuario.
 - No existen pagos, cuentas de usuario ni panel administrativo.
 - La inspección técnica de usados, reparaciones y retomas debe realizarla una persona.
 - Los eventos de analítica permanecen únicamente en el navegador.

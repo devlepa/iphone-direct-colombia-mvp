@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import type { CustomerProfile } from "@/domain/customer-profile";
 import type { Product } from "@/domain/product";
+import { buildProductCatalog } from "@/data/device-catalog";
 import type { AdvisorCatalogs, AdvisorInput } from "./advisor.types";
 import { advisorInputSchema } from "./advisor.schema";
 import { generateRecommendation } from "./advisor.service";
@@ -16,6 +17,7 @@ const products: Product[] = [
     warrantyDays: 365,
     imeiVerified: true,
     componentsChecked: [],
+    stock: 1,
     available: true,
     isTestData: true,
   },
@@ -29,6 +31,7 @@ const products: Product[] = [
     warrantyDays: 90,
     imeiVerified: true,
     componentsChecked: ["pantalla", "cámaras"],
+    stock: 1,
     available: true,
     isTestData: true,
   },
@@ -42,6 +45,7 @@ const products: Product[] = [
     warrantyDays: 90,
     imeiVerified: true,
     componentsChecked: ["pantalla"],
+    stock: 0,
     available: false,
     isTestData: true,
   },
@@ -160,6 +164,189 @@ test("no considera productos que no están disponibles", () => {
   assert.equal(options.some((option) => option.productId === "unavailable-test"), false);
 });
 
+test("deriva la disponibilidad del catálogo únicamente de un stock positivo", () => {
+  for (const product of buildProductCatalog()) {
+    assert.equal(
+      product.available,
+      product.stock !== null && product.stock > 0,
+      `${product.id} debe reflejar su stock real`,
+    );
+  }
+});
+
+test("excluye del motor una referencia cuyo stock está vacío o sin confirmar", () => {
+  const result = generateRecommendation(
+    { profile: profile({ acceptsCertifiedUsed: true }) },
+    {
+      ...catalogs,
+      products: [
+        {
+          ...products[0],
+          id: "stock-sin-confirmar",
+          priceCop: 400_000,
+          stock: null,
+          available: true,
+        },
+        { ...products[1], id: "stock-confirmado", stock: 2, available: true },
+      ],
+    },
+  );
+  const options = [result, ...result.alternatives];
+
+  assert.equal(result.productId, "stock-confirmado");
+  assert.equal(
+    options.some((option) => option.productId === "stock-sin-confirmar"),
+    false,
+  );
+});
+
+test("recomienda únicamente referencias con stock positivo", () => {
+  const result = generateRecommendation(
+    { profile: profile({ acceptsCertifiedUsed: true, budgetCop: 3_500_000 }) },
+    {
+      ...catalogs,
+      products: [
+        {
+          ...products[1],
+          id: "disponible-con-tres-unidades",
+          stock: 3,
+          available: true,
+        },
+        {
+          ...products[1],
+          id: "agotado-aunque-sea-mas-barato",
+          priceCop: 300_000,
+          stock: 0,
+          available: true,
+        },
+      ],
+    },
+  );
+  const options = [result, ...result.alternatives];
+
+  assert.equal(result.productId, "disponible-con-tres-unidades");
+  assert.equal(
+    options.some((option) => option.productId === "agotado-aunque-sea-mas-barato"),
+    false,
+  );
+});
+
+test("evalúa el stock nuevo y usado de un mismo modelo de forma independiente", async (t) => {
+  await t.test("ofrece usado cuando el nuevo está agotado", () => {
+    const result = generateRecommendation(
+      { profile: profile({ acceptsCertifiedUsed: true }) },
+      {
+        ...catalogs,
+        products: [
+          {
+            ...products[0],
+            id: "mismo-modelo-nuevo-agotado",
+            model: "iPhone compartido",
+            stock: 0,
+            available: true,
+          },
+          {
+            ...products[1],
+            id: "mismo-modelo-usado-disponible",
+            model: "iPhone compartido",
+            stock: 2,
+            available: true,
+          },
+        ],
+      },
+    );
+    const options = [result, ...result.alternatives];
+
+    assert.equal(result.productId, "mismo-modelo-usado-disponible");
+    assert.equal(
+      options.some((option) => option.productId === "mismo-modelo-nuevo-agotado"),
+      false,
+    );
+  });
+
+  await t.test("ofrece nuevo cuando el usado está agotado", () => {
+    const result = generateRecommendation(
+      { profile: profile({ acceptsCertifiedUsed: true }) },
+      {
+        ...catalogs,
+        products: [
+          {
+            ...products[0],
+            id: "mismo-modelo-nuevo-disponible",
+            model: "iPhone compartido",
+            stock: 2,
+            available: true,
+          },
+          {
+            ...products[1],
+            id: "mismo-modelo-usado-agotado",
+            model: "iPhone compartido",
+            stock: 0,
+            available: true,
+          },
+        ],
+      },
+    );
+    const options = [result, ...result.alternatives];
+
+    assert.equal(result.productId, "mismo-modelo-nuevo-disponible");
+    assert.equal(
+      options.some((option) => option.productId === "mismo-modelo-usado-agotado"),
+      false,
+    );
+  });
+});
+
+test("no recomienda mercancía que el catálogo recibido no ofrece", () => {
+  const offeredProduct = {
+    ...products[0],
+    id: "unico-producto-ofrecido",
+    stock: 1,
+    available: true,
+  };
+  const result = generateRecommendation(
+    { profile: profile({ acceptsCertifiedUsed: true }) },
+    {
+      ...catalogs,
+      products: [
+        offeredProduct,
+        {
+          ...products[1],
+          id: "producto-no-ofrecido",
+          priceCop: 100_000,
+          stock: 10,
+          available: false,
+        },
+      ],
+    },
+  );
+  const productIds = [result, ...result.alternatives]
+    .map((option) => option.productId)
+    .filter((productId): productId is string => Boolean(productId));
+
+  assert.deepEqual(productIds, [offeredProduct.id]);
+  assert.equal(productIds.includes("producto-ausente-del-catalogo"), false);
+  assert.equal(productIds.includes("producto-no-ofrecido"), false);
+});
+
+test("informa claramente cuando todo el inventario está agotado o sin registrar", () => {
+  assert.throws(
+    () =>
+      generateRecommendation(
+        { profile: profile({ acceptsCertifiedUsed: true }) },
+        {
+          ...catalogs,
+          products: products.map((product, index) => ({
+            ...product,
+            stock: index === 0 ? null : 0,
+            available: true,
+          })),
+        },
+      ),
+    /No hay equipos con stock disponible/,
+  );
+});
+
 test("explica cuando ninguna compra cabe en el presupuesto", () => {
   const result = generateRecommendation(
     {
@@ -211,6 +398,7 @@ test("si el cliente tiene un 15 Pro Max solo recomienda un salto superior", () =
       warrantyDays: 120,
       imeiVerified: true,
       componentsChecked: ["pantalla", "cámaras"],
+      stock: 1,
       available: true,
       isTestData: true,
     },
@@ -223,6 +411,7 @@ test("si el cliente tiene un 15 Pro Max solo recomienda un salto superior", () =
       warrantyDays: 365,
       imeiVerified: true,
       componentsChecked: [],
+      stock: 1,
       available: true,
       isTestData: true,
     },
@@ -235,6 +424,7 @@ test("si el cliente tiene un 15 Pro Max solo recomienda un salto superior", () =
       warrantyDays: 365,
       imeiVerified: true,
       componentsChecked: [],
+      stock: 1,
       available: true,
       isTestData: true,
     },

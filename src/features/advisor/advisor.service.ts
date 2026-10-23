@@ -52,7 +52,11 @@ function buildProductCandidate(
   const upgradeReasons = currentDevice
     ? getUpgradeReasons(currentDevice.model, product.model)
     : [];
-  const reasons = [...upgradeReasons, budgetReason(product.priceCop, profile)];
+  const reasons = [
+    ...upgradeReasons,
+    budgetReason(product.priceCop, profile),
+    `Hay ${product.stock} ${product.stock === 1 ? "unidad disponible" : "unidades disponibles"} en el inventario actual.`,
+  ];
   let score = scoreBudget(product.priceCop, profile);
 
   if (currentDevice) {
@@ -84,7 +88,9 @@ function buildProductCandidate(
     option,
     productId: product.id,
     label: `${product.model} ${product.storageGb} GB${
-      product.condition === "CERTIFIED_USED" ? " usado certificado" : " nuevo"
+      product.condition === "CERTIFIED_USED"
+        ? " usado certificado"
+        : " nuevo sellado"
     }`,
     score,
     reasons: reasons.slice(0, 5),
@@ -115,7 +121,10 @@ function buildRepairCandidate(
   const { profile, currentDevice } = input;
   const cost = estimateRepairCost(currentDevice, catalogs);
   const replacement = catalogs.products
-    .filter((product) => product.available)
+    .filter(
+      (product) =>
+        product.available && product.stock !== null && product.stock > 0,
+    )
     .sort((a, b) => a.priceCop - b.priceCop)[0];
   const isEconomical = replacement
     ? cost / replacement.priceCop <= BUSINESS_RULES.maxRepairToReplacementRatio
@@ -211,6 +220,8 @@ export function generateRecommendation(
   const availableProducts = catalogs.products.filter(
     (product) =>
       product.available &&
+      product.stock !== null &&
+      product.stock > 0 &&
       (!input.currentDevice ||
         isMeaningfulUpgrade(input.currentDevice.model, product.model)) &&
       (product.condition === "NEW" ||
@@ -233,7 +244,9 @@ export function generateRecommendation(
   const [primary, ...remaining] = candidates;
 
   if (!primary) {
-    throw new Error("No hay alternativas disponibles para generar una recomendación.");
+    throw new Error(
+      "No hay equipos con stock disponible que cumplan estas condiciones. Actualiza el inventario o revisa tus respuestas.",
+    );
   }
 
   return {

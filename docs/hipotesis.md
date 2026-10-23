@@ -15,7 +15,8 @@ Este documento registra afirmaciones que deben validarse con comportamiento real
 Los siguientes valores son configurables y también requieren validación:
 
 - una reparación debe revisarse si supera el 30 % del costo de reemplazo;
-- un usado de prueba debe registrar al menos 85 % de salud de batería para presentarse como certificado;
+- una unidad usada debe documentar su salud de batería; el umbral preliminar de 85 % para
+  presentarla como certificada sigue siendo una hipótesis por validar;
 - toda reparación y toda retoma requieren revisión humana;
 - el resultado debe mostrar una recomendación principal y máximo dos alternativas.
 

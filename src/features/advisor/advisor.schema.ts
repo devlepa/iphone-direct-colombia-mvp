@@ -54,6 +54,7 @@ export const productSchema = z.object({
   warrantyDays: z.number().int().nonnegative(),
   imeiVerified: z.boolean(),
   componentsChecked: z.array(z.string()),
+  stock: z.number().int().nonnegative().nullable(),
   available: z.boolean(),
   isTestData: z.literal(true),
 });

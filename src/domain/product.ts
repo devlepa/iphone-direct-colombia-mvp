@@ -10,6 +10,7 @@ export type Product = {
   warrantyDays: number;
   imeiVerified: boolean;
   componentsChecked: string[];
+  stock: number | null;
   available: boolean;
   isTestData: true;
 };

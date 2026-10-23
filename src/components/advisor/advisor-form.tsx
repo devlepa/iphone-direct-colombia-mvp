@@ -13,24 +13,14 @@ import type {
   DeviceCondition,
   DeviceFailure,
 } from "@/domain/device";
-import repairOptionsData from "@/data/repair-options.json";
-import tradeInValuesData from "@/data/trade-in-values.json";
+import { currentIPhoneModels } from "@/data/device-catalog";
 import {
-  buildProductCatalog,
-  buildTradeInCatalog,
-  currentIPhoneModels,
-} from "@/data/device-catalog";
-import {
-  advisorInputSchema,
-  productSchema,
-  repairOptionSchema,
-  tradeInValueSchema,
-} from "@/features/advisor/advisor.schema";
+  advisorCatalogRevision,
+  advisorCatalogs,
+} from "@/features/advisor/advisor.catalogs";
+import { advisorInputSchema } from "@/features/advisor/advisor.schema";
 import { generateRecommendation } from "@/features/advisor/advisor.service";
-import type {
-  AdvisorCatalogs,
-  RecommendationRecord,
-} from "@/features/advisor/advisor.types";
+import type { RecommendationRecord } from "@/features/advisor/advisor.types";
 import { trackEvent } from "@/lib/analytics";
 import {
   loadLocalValue,
@@ -76,14 +66,6 @@ const emptyForm: AdvisorFormState = {
   bodyCondition: "UNKNOWN",
   knownFailures: [],
   previousRepairs: null,
-};
-
-const catalogs: AdvisorCatalogs = {
-  products: productSchema.array().parse(buildProductCatalog()),
-  repairOptions: repairOptionSchema.array().parse(repairOptionsData),
-  tradeInValues: tradeInValueSchema
-    .array()
-    .parse([...buildTradeInCatalog(), ...tradeInValuesData]),
 };
 
 const objectiveOptions: {
@@ -369,11 +351,12 @@ export function AdvisorForm() {
     }
 
     try {
-      const recommendation = generateRecommendation(parsed.data, catalogs);
+      const recommendation = generateRecommendation(parsed.data, advisorCatalogs);
       const record: RecommendationRecord = {
         input: parsed.data,
         recommendation,
         generatedAt: new Date().toISOString(),
+        catalogRevision: advisorCatalogRevision,
       };
 
       saveLocalValue(STORAGE_KEYS.recommendation, record);
@@ -382,8 +365,12 @@ export function AdvisorForm() {
         option: recommendation.primaryOption,
       });
       router.push("/resultado");
-    } catch {
-      setError("No pudimos generar la recomendación. Revisa las respuestas e inténtalo de nuevo.");
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "No pudimos generar la recomendación. Revisa las respuestas e inténtalo de nuevo.",
+      );
       setIsSubmitting(false);
     }
   }

@@ -14,7 +14,23 @@ export const metadata: Metadata = {
     "Explora fotografías reales y precios aproximados de iPhone nuevos y usados certificados en Colombia, desde iPhone 13 hasta iPhone 18 Pro Max.",
 };
 
-const generations = [18, 17, 16, 15, 14, 13];
+const generations = Array.from(
+  new Set(deviceCatalog.map((device) => device.generation)),
+).sort((first, second) => second - first);
+
+const oldestGeneration = Math.min(...generations);
+const latestGeneration = Math.max(...generations);
+const featuredDevice = [...deviceCatalog].sort(
+  (first, second) =>
+    second.generation - first.generation ||
+    second.newPriceCop - first.newPriceCop,
+)[0];
+
+function getStockLabel(stock: number | null) {
+  if (stock === null) return "Stock sin registrar · no se recomienda";
+  if (stock === 0) return "Agotado · no se recomienda";
+  return `${stock} ${stock === 1 ? "unidad disponible" : "unidades disponibles"}`;
+}
 
 const priceSources = [
   { label: "Mac Center", href: "https://mac-center.com/pages/iPhone" },
@@ -31,7 +47,7 @@ const priceSources = [
 ];
 
 export default function CatalogPage() {
-  const heroImage = getDeviceImage("iPhone 18 Pro Max");
+  const heroImage = featuredDevice && getDeviceImage(featuredDevice.model);
 
   return (
     <main className="flex-1 bg-white">
@@ -45,9 +61,9 @@ export default function CatalogPage() {
               El iPhone correcto se ve y se compara.
             </h1>
             <p className="mt-7 max-w-2xl text-lg leading-8 text-white/65">
-              23 modelos, desde iPhone 13 mini hasta iPhone 18 Pro Max, con
-              fotografías oficiales y referencias de mercado para equipos nuevos y
-              usados certificados.
+              {deviceCatalog.length} modelos, desde la generación {oldestGeneration} hasta
+              la {latestGeneration}, con fotografías de producto, precios e inventario para
+              equipos nuevos y usados certificados.
             </p>
             <div className="mt-8 flex flex-wrap gap-2" aria-label="Ir a una generación">
               {generations.map((generation) => (
@@ -75,9 +91,9 @@ export default function CatalogPage() {
               <div className="absolute inset-x-5 bottom-5 flex items-end justify-between gap-4 border-t border-white/15 pt-4 text-xs sm:inset-x-7 sm:bottom-7">
                 <div>
                   <p className="font-black uppercase tracking-[0.16em] text-white">
-                    iPhone 18 Pro Max
+                    {featuredDevice.model}
                   </p>
-                  <p className="mt-1 text-white/50">Fotografía oficial · vista monocromática</p>
+                  <p className="mt-1 text-white/50">Fotografía de catálogo · vista monocromática</p>
                 </div>
                 <a
                   href={heroImage.sourceUrl}
@@ -85,7 +101,7 @@ export default function CatalogPage() {
                   rel="noreferrer"
                   className="shrink-0 text-white/60 underline decoration-white/30 underline-offset-4 hover:text-white"
                 >
-                  Fuente Apple ↗
+                  Fuente de imagen ↗
                 </a>
               </div>
             </div>
@@ -98,9 +114,10 @@ export default function CatalogPage() {
           <p>
             <strong className="text-black">Precios aproximados, no cotizaciones.</strong>{" "}
             {catalogPriceReference.note}
+            {" "}El motor solo recomienda condiciones con stock mayor que cero en el CSV.
           </p>
           <p className="shrink-0 font-mono text-xs uppercase tracking-[0.08em]">
-            Verificados: {catalogPriceReference.checkedAt}
+            Última actualización: {catalogPriceReference.checkedAt}
           </p>
         </div>
       </section>
@@ -160,9 +177,9 @@ export default function CatalogPage() {
                             target="_blank"
                             rel="noreferrer"
                             className="absolute bottom-3 right-3 rounded-full bg-black/75 px-3 py-1.5 text-[10px] font-bold text-white backdrop-blur transition hover:bg-black"
-                            aria-label={`Ver fuente oficial de la fotografía de ${device.model}`}
+                            aria-label={`Ver fuente original de la fotografía de ${device.model}`}
                           >
-                            Foto Apple ↗
+                            Fuente foto ↗
                           </a>
                         )}
                       </div>
@@ -183,20 +200,28 @@ export default function CatalogPage() {
                         <dl className="mt-5 grid gap-2 border-t border-[color:var(--line)] pt-4">
                           <div className="rounded-xl bg-[color:var(--surface)] p-3">
                             <dt className="text-[10px] font-black uppercase tracking-[0.14em] text-[color:var(--muted)]">
-                              Nuevo desde
+                              Nuevo sellado
                             </dt>
                             <dd className="mt-1 text-lg font-black tracking-[-0.02em] text-black">
                               {formatCop(device.newPriceCop)}
                             </dd>
+                            <dd className="mt-1 text-xs font-semibold text-[color:var(--muted)]">
+                              {getStockLabel(device.newStock)}
+                            </dd>
                           </div>
                           <div className="rounded-xl border border-[color:var(--line)] p-3">
                             <dt className="text-[10px] font-black uppercase tracking-[0.14em] text-[color:var(--muted)]">
-                              Usado certificado desde
+                              Segunda · certificado
                             </dt>
                             <dd className="mt-1 text-lg font-black tracking-[-0.02em] text-black">
                               {device.certifiedUsedPriceCop === null
                                 ? "Sin referencia aún"
                                 : formatCop(device.certifiedUsedPriceCop)}
+                            </dd>
+                            <dd className="mt-1 text-xs font-semibold text-[color:var(--muted)]">
+                              {device.certifiedUsedPriceCop === null
+                                ? "Sin inventario publicado"
+                                : getStockLabel(device.certifiedUsedStock)}
                             </dd>
                           </div>
                         </dl>
@@ -229,9 +254,9 @@ export default function CatalogPage() {
             <p>
               Normalizamos precios observados en distribuidores, comercios y tiendas de
               reacondicionados en Colombia. En modelos descontinuados, el inventario sellado
-              es escaso y puede costar más que una generación posterior. Para iPhone 18 Pro y
-              18 Pro Max no publicamos un precio usado porque aún no encontramos un mercado
-              certificado verificable.
+              es escaso y puede costar más que una generación posterior. Cuando aún no existe
+              una referencia verificable para un usado certificado, la tarjeta lo indica sin
+              inventar un valor.
             </p>
             <div className="mt-5 flex flex-wrap gap-2" aria-label="Fuentes de precios">
               {priceSources.map((source) => (
@@ -272,8 +297,8 @@ export default function CatalogPage() {
 
         <p className="mx-auto mt-8 max-w-4xl text-center text-xs leading-5 text-[color:var(--muted)]">
           Las imágenes se muestran en escala de grises para conservar el lenguaje visual del
-          sitio; los colores reales dependen del acabado disponible. Fotografías oficiales de
-          Apple Newsroom. Apple e iPhone son marcas de Apple Inc.
+          sitio; los colores reales dependen del acabado disponible. La fuente de cada
+          fotografía está enlazada en su ficha. Apple e iPhone son marcas de Apple Inc.
         </p>
       </div>
     </main>
