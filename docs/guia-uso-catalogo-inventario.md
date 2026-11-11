@@ -1,7 +1,7 @@
 # Guía de uso del catálogo e inventario CSV
 
 Esta guía explica cómo administrar los modelos, las condiciones, los precios, las
-fotografías y el stock de iPhone Direct Colombia desde:
+fotografías y el stock de DirectPhone Co desde:
 
 ```text
 data/catalogo-inventario.csv
@@ -17,7 +17,7 @@ de inspección independiente.
 
 Antes de una modificación amplia conviene guardar una copia del CSV o crear un cambio en
 Git. Todos los comandos de esta guía se ejecutan desde la raíz del proyecto
-`iphone-direct-colombia-mvp`.
+`directphone-co-mvp`.
 
 ## 1. Regla principal de disponibilidad
 

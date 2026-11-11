@@ -1,11 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import {
-  catalogPriceReference,
-  deviceCatalog,
-  getDeviceImage,
-} from "@/data/device-catalog";
+import { deviceCatalog, getDeviceImage } from "@/data/device-catalog";
 import { formatCop } from "@/lib/currency";
 
 export const metadata: Metadata = {
@@ -31,20 +27,6 @@ function getStockLabel(stock: number | null) {
   if (stock === 0) return "Agotado · no se recomienda";
   return `${stock} ${stock === 1 ? "unidad disponible" : "unidades disponibles"}`;
 }
-
-const priceSources = [
-  { label: "Mac Center", href: "https://mac-center.com/pages/iPhone" },
-  {
-    label: "iShop",
-    href: "https://co.tiendasishop.com/collections/iphone-precio-minimo",
-  },
-  {
-    label: "Alkosto",
-    href: "https://www.alkosto.com/iphone-15-128gb-5g-negro/p/195949035913",
-  },
-  { label: "Clevercel", href: "https://www.clevercel.co/pages/estado-de-los-equipos" },
-  { label: "Refurbi", href: "https://refurbi.com.co/products/iphone-air" },
-];
 
 export default function CatalogPage() {
   const heroImage = featuredDevice && getDeviceImage(featuredDevice.model);
@@ -110,15 +92,17 @@ export default function CatalogPage() {
       </section>
 
       <section className="border-b border-[color:var(--line)] bg-[color:var(--surface)]">
-        <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 px-5 py-5 text-sm text-[color:var(--muted)] sm:px-8 lg:flex-row lg:items-center lg:justify-between">
-          <p>
-            <strong className="text-black">Precios aproximados, no cotizaciones.</strong>{" "}
-            {catalogPriceReference.note}
-            {" "}El motor solo recomienda condiciones con stock mayor que cero en el CSV.
-          </p>
-          <p className="shrink-0 font-mono text-xs uppercase tracking-[0.08em]">
-            Última actualización: {catalogPriceReference.checkedAt}
-          </p>
+        <div className="mx-auto w-full max-w-7xl px-5 py-5 text-sm sm:px-8">
+          <p className="font-bold text-black">Precios aproximados, no cotizaciones.</p>
+          {/*
+            Contexto retirado de la interfaz:
+            - {catalogPriceReference.note}
+            - El motor solo recomienda condiciones con stock mayor que cero en el CSV.
+            - Última actualización: {catalogPriceReference.checkedAt}
+
+            Si se vuelve a mostrar este contenido, restaurar el import de
+            catalogPriceReference desde @/data/device-catalog.
+          */}
         </div>
       </section>
 
@@ -240,39 +224,6 @@ export default function CatalogPage() {
             </section>
           );
         })}
-
-        <section className="mt-8 grid gap-8 border-y border-[color:var(--line)] py-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
-          <div>
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-[color:var(--muted)]">
-              Metodología de precios
-            </p>
-            <h2 className="mt-3 font-display text-4xl font-semibold tracking-[-0.045em] text-black">
-              Referencias con contexto.
-            </h2>
-          </div>
-          <div className="text-sm leading-7 text-[color:var(--muted)]">
-            <p>
-              Normalizamos precios observados en distribuidores, comercios y tiendas de
-              reacondicionados en Colombia. En modelos descontinuados, el inventario sellado
-              es escaso y puede costar más que una generación posterior. Cuando aún no existe
-              una referencia verificable para un usado certificado, la tarjeta lo indica sin
-              inventar un valor.
-            </p>
-            <div className="mt-5 flex flex-wrap gap-2" aria-label="Fuentes de precios">
-              {priceSources.map((source) => (
-                <a
-                  key={source.label}
-                  href={source.href}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="rounded-full border border-[color:var(--line-strong)] bg-white px-4 py-2 text-xs font-bold text-black transition hover:border-black"
-                >
-                  {source.label} ↗
-                </a>
-              ))}
-            </div>
-          </div>
-        </section>
 
         <section className="mt-14 flex flex-col gap-6 rounded-[1.75rem] bg-black p-7 text-white sm:p-10 lg:flex-row lg:items-center lg:justify-between">
           <div>

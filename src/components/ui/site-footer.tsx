@@ -5,7 +5,7 @@ export function SiteFooter() {
     <footer className="border-t border-[color:var(--line)] bg-[color:var(--canvas)]">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-5 py-8 text-sm text-[color:var(--muted)] sm:flex-row sm:items-center sm:justify-between sm:px-8">
         <div>
-          <p className="font-bold text-[color:var(--ink)]">iPhone Direct Colombia</p>
+          <p className="font-bold text-[color:var(--ink)]">DirectPhone Co</p>
           <p className="mt-1">Una guía de decisión en etapa de validación.</p>
         </div>
         <div className="flex flex-wrap gap-x-5 gap-y-2">

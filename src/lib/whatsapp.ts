@@ -16,7 +16,7 @@ export function buildWhatsAppUrl({ option, sessionId }: WhatsAppMessageInput) {
   const configuredNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "";
   const phoneNumber = configuredNumber.replace(/\D/g, "");
   const message = [
-    "Hola, completé la guía de iPhone Direct Colombia.",
+    "Hola, completé la guía de DirectPhone Co.",
     `Mi recomendación fue: ${optionLabels[option]}.`,
     `Mi identificador de sesión es: ${sessionId}.`,
     "Quiero continuar con un asesor.",

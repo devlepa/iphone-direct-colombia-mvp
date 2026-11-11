@@ -1,6 +1,6 @@
 # Explicación completa de la aplicación y sus funcionalidades
 
-**Proyecto:** iPhone Direct Colombia  
+**Proyecto:** DirectPhone Co<br>
 **Fecha de corte:** 23 de octubre de 2026  
 **Estado descrito:** implementación local actual del repositorio  
 **Audiencia:** negocio, producto, desarrollo, pruebas y operación del catálogo
@@ -12,14 +12,14 @@ se indica expresamente.
 
 Documentos relacionados:
 
-- [Contexto maestro validado](../CONTEXTO_MAESTRO_MVP_IPHONE_DIRECT_COLOMBIA.md).
+- [Contexto maestro validado](../CONTEXTO_MAESTRO_MVP_DIRECTPHONE_CO.md).
 - [Guía técnica y de ejecución](guia-tecnica-y-ejecucion.md).
 - [Guía de uso del catálogo e inventario CSV](guia-uso-catalogo-inventario.md).
 - [Decisiones de producto](decisiones-de-producto.md).
 
 ## 1. Qué es la aplicación
 
-iPhone Direct Colombia es un MVP de orientación comercial para ayudar a una persona a
+DirectPhone Co es un MVP de orientación comercial para ayudar a una persona a
 comparar cuatro rutas:
 
 1. comprar un iPhone nuevo sellado;

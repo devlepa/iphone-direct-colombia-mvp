@@ -1,6 +1,6 @@
 # Guía técnica y de ejecución
 
-Este documento explica las tecnologías utilizadas en **iPhone Direct Colombia**, la
+Este documento explica las tecnologías utilizadas en **DirectPhone Co**, la
 organización del código y el procedimiento para instalar, configurar, ejecutar y validar
 el proyecto.
 
@@ -145,7 +145,7 @@ data/catalogo-inventario.csv
 | `src/lib/whatsapp.ts` | Construcción del enlace de WhatsApp. |
 | `.env.example` | Plantilla de configuración local. |
 | `public/products/` | Fotografías de producto descargadas para servirlas localmente. |
-| `public/brand/` | Logo suministrado por iPhone Direct Colombia. |
+| `public/brand/` | Logo suministrado por DirectPhone Co. |
 
 ## 4. Requisitos previos
 
@@ -174,14 +174,14 @@ antes de continuar.
 Si el repositorio ya se encuentra en el equipo, ingresar a la carpeta de la aplicación:
 
 ```bash
-cd /home/devlepa/Escritorio/iphone_direct_colombia/iphone-direct-colombia-mvp
+cd /ruta/al/proyecto/directphone-co-mvp
 ```
 
 Si el proyecto se obtuvo desde GitHub, primero se debe clonar y luego entrar a la carpeta:
 
 ```bash
 git clone URL_DEL_REPOSITORIO
-cd iphone-direct-colombia-mvp
+cd directphone-co-mvp
 ```
 
 ### Paso 2. Instalar las dependencias

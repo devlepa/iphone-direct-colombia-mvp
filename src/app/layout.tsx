@@ -5,8 +5,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "iPhone Direct Colombia",
-    template: "%s | iPhone Direct Colombia",
+    default: "DirectPhone Co",
+    template: "%s | DirectPhone Co",
   },
   description:
     "Encuentra tu mejor actualización entre iPhone 13 y iPhone 18 Pro Max con precios aproximados y una recomendación explicada.",

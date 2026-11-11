@@ -152,8 +152,8 @@ export default function Home() {
                   Gama más reciente
                 </span>
                 <Image
-                  src="/brand/iphone-direct-colombia.png"
-                  alt="iPhone Direct Colombia"
+                  src="/brand/directphone-co.png"
+                  alt="DirectPhone Co"
                   width={1254}
                   height={1254}
                   priority

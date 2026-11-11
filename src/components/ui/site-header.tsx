@@ -8,11 +8,11 @@ export function SiteHeader() {
         <Link
           href="/"
           className="group flex items-center gap-3 rounded-full focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[color:var(--accent)]"
-          aria-label="iPhone Direct Colombia, inicio"
+          aria-label="DirectPhone Co, inicio"
         >
           <span className="relative size-11 overflow-hidden rounded-[14px] bg-black transition-transform group-hover:-rotate-3">
             <Image
-              src="/brand/iphone-direct-colombia.png"
+              src="/brand/directphone-co.png"
               alt=""
               width={100}
               height={100}
@@ -21,10 +21,10 @@ export function SiteHeader() {
           </span>
           <span className="leading-none">
             <span className="block text-sm font-extrabold tracking-[-0.02em] text-[color:var(--ink)]">
-              iPhone Direct
+              DirectPhone
             </span>
             <span className="mt-1 block text-[10px] font-bold uppercase tracking-[0.22em] text-[color:var(--muted)]">
-              Colombia
+              Co
             </span>
           </span>
         </Link>

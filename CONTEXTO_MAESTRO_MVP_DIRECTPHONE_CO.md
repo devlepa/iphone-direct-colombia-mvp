@@ -1,10 +1,10 @@
-# Contexto maestro validado del MVP de iPhone Direct Colombia
+# Contexto maestro validado del MVP de DirectPhone Co
 
 **Fecha de corte:** 22 de octubre de 2026  
 **Versión integrada:** fusiona el contexto maestro del 20 de octubre con el documento
 `readme_contexto_general_proyecto.md` suministrado el 22 de octubre de 2026.  
 **Uso previsto:** referencia interna de negocio, producto y desarrollo del repositorio local.  
-**Proyecto:** iPhone Direct Colombia.  
+**Proyecto:** DirectPhone Co.  
 **Equipo:** Juan Esteban León Parra y Sergio Molina.
 
 > Este documento consolida contexto y criterios del proyecto. No reemplaza las solicitudes
@@ -44,7 +44,7 @@ La hoja maestra del proyecto es:
 
 ## 2. Estado actual del proyecto
 
-iPhone Direct Colombia es un MVP local de una plataforma físico-digital que guía a una persona para elegir entre cuatro alternativas:
+DirectPhone Co es un MVP local de una plataforma físico-digital que guía a una persona para elegir entre cuatro alternativas:
 
 1. Comprar un iPhone nuevo sellado.
 2. Comprar un iPhone usado certificado.
@@ -138,7 +138,7 @@ sola no valida ventas.
 
 Propuesta de valor de trabajo:
 
-> iPhone Direct Colombia guía al cliente mediante un proceso digital y asistido que analiza su presupuesto, necesidades y equipo actual; compara comprar nuevo, adquirir un usado certificado, reparar o hacer *trade-in*; y recomienda la alternativa más conveniente con costos, evidencia técnica, garantía y condiciones claras.
+> DirectPhone Co guía al cliente mediante un proceso digital y asistido que analiza su presupuesto, necesidades y equipo actual; compara comprar nuevo, adquirir un usado certificado, reparar o hacer *trade-in*; y recomienda la alternativa más conveniente con costos, evidencia técnica, garantía y condiciones claras.
 
 El diferencial no consiste en poner cuatro botones. Consiste en integrar decisiones que normalmente aparecen separadas mediante una arquitectura de decisión que:
 
@@ -163,7 +163,7 @@ La innovación se clasifica como **innovación de proceso y de modelo de negocio
 | Preferencia por acompañamiento y punto físico | Evidencia de encuesta | Priorizar cita, diagnóstico y atención en local propio. |
 | Catálogo, precios y stock agregado | Inventario real suministrado por el responsable | Mostrar según el CSV y mantenerlo actualizado; confirmar unidad, condición y precio antes del cierre. |
 | Proveedor de usados Digital Tech | Evidencia documental del escenario | Uso interno; no atribuir certificaciones no contenidas en la evidencia. |
-| Garantía final ofrecida por iPhone Direct | Pendiente de política comercial | No prometer duración hasta que sea aprobada. |
+| Garantía final ofrecida por DirectPhone | Pendiente de política comercial | No prometer duración hasta que sea aprobada. |
 | Reparación con técnico propio | Decisión de modelo; operación aún no validada | Toda recomendación queda sujeta a diagnóstico presencial. |
 | *Trade-in* propio | Hipótesis operativa | Todo valor es estimado y sujeto a inspección funcional y cosmética. |
 | Umbral mínimo de batería de 85 % | Hipótesis de producto | Configurable; no mostrarlo como dato real de una unidad si no fue medido. |
@@ -371,7 +371,7 @@ Mostrar:
 
 El estudio verificó ocho referencias: Mac Center, iShop Colombia, Clevercel, Refurbi, Alkosto, Claro Colombia, Movistar Colombia y Falabella Marketplace.
 
-| Patrón encontrado | Qué significa para iPhone Direct | Requisito de producto |
+| Patrón encontrado | Qué significa para DirectPhone | Requisito de producto |
 |---|---|---|
 | Mac Center e iShop integran garantía, retoma y servicio autorizado. | Garantía y posventa ya son requisitos básicos del mercado. | Mostrar condiciones, responsable, canal de atención y estado de la solicitud. |
 | Clevercel compite con precio, categorías de condición y batería mínima publicada. | Un usado necesita criterios visibles, no solo una foto. | Mostrar evidencia real disponible y distinguir “pendiente de inspección”. |
@@ -392,7 +392,7 @@ No copies visualmente las páginas de los competidores. Usa sus fortalezas y bre
 - **4:** oferta desarrollada, clara y verificable.
 - **5:** oferta sobresaliente e integrada.
 
-Un valor de 3,0 no significa 3 % ni una nota sobre 10. Significa nivel básico o promedio del mercado. Las metas de iPhone Direct son hipótesis, no desempeño demostrado.
+Un valor de 3,0 no significa 3 % ni una nota sobre 10. Significa nivel básico o promedio del mercado. Las metas de DirectPhone son hipótesis, no desempeño demostrado.
 
 ## 11. Contrato inmodificable del catálogo CSV
 
@@ -716,7 +716,7 @@ en formulario, cita, cotización u operación pagada.
 
 ### Fuente maestra del proyecto
 
-- Hoja “iPhone Direct Colombia”: <https://docs.google.com/spreadsheets/d/1DqIgBNNDQF1BCrcUcFT1DiRCt2znI-5NRmftX4pABPo/edit>
+- Hoja “DirectPhone Co”: <https://docs.google.com/spreadsheets/d/1DqIgBNNDQF1BCrcUcFT1DiRCt2znI-5NRmftX4pABPo/edit>
 
 ### Competidores verificados en la hoja
 

@@ -1,8 +1,8 @@
-# iPhone Direct Colombia — MVP local
+# DirectPhone Co — MVP local
 
-> Para conocer todas las páginas, funcionalidades y reglas consulta la [explicación completa de la aplicación](docs/explicacion-aplicacion-y-funcionalidades.md). Para instalar y ejecutar el proyecto consulta la [guía técnica y de ejecución](docs/guia-tecnica-y-ejecucion.md). Para administrar modelos, precios, fotos y stock consulta la [guía de uso del catálogo e inventario CSV](docs/guia-uso-catalogo-inventario.md). Para decisiones de producto, alcance y prioridades usa el [contexto maestro validado](CONTEXTO_MAESTRO_MVP_IPHONE_DIRECT_COLOMBIA.md).
+> Para conocer todas las páginas, funcionalidades y reglas consulta la [explicación completa de la aplicación](docs/explicacion-aplicacion-y-funcionalidades.md). Para instalar y ejecutar el proyecto consulta la [guía técnica y de ejecución](docs/guia-tecnica-y-ejecucion.md). Para administrar modelos, precios, fotos y stock consulta la [guía de uso del catálogo e inventario CSV](docs/guia-uso-catalogo-inventario.md). Para decisiones de producto, alcance y prioridades usa el [contexto maestro validado](CONTEXTO_MAESTRO_MVP_DIRECTPHONE_CO.md).
 
-Repositorio para diseñar, construir y validar localmente el MVP de **iPhone Direct Colombia**, una plataforma de renovación guiada que ayuda al cliente a comparar cuatro alternativas:
+Repositorio para diseñar, construir y validar localmente el MVP de **DirectPhone Co**, una plataforma de renovación guiada que ayuda al cliente a comparar cuatro alternativas:
 
 1. Comprar un iPhone nuevo sellado.
 2. Comprar un iPhone usado certificado.
@@ -15,7 +15,7 @@ El MVP no busca ser inicialmente una tienda virtual completa. Su objetivo princi
 
 ## 1. Información general
 
-- **Proyecto:** iPhone Direct Colombia.
+- **Proyecto:** DirectPhone Co.
 - **Estado:** definición y desarrollo inicial del MVP.
 - **Modalidad inicial:** ejecución local.
 - **Segmento inicial:** estudiantes de educación superior en Bogotá, especialmente de la Universidad Sergio Arboleda, Universidad EAN y Universidad Santo Tomás.
@@ -46,7 +46,7 @@ Ejemplos:
 
 ## 3. Propuesta de valor que debe representar el MVP
 
-> iPhone Direct Colombia guía al cliente mediante un proceso digital y asistido que analiza su presupuesto, necesidades y equipo actual; compara comprar nuevo, adquirir un usado certificado, reparar o realizar *trade-in*; y recomienda la alternativa más conveniente con costos, evidencia técnica, garantía y condiciones claras.
+> DirectPhone Co guía al cliente mediante un proceso digital y asistido que analiza su presupuesto, necesidades y equipo actual; compara comprar nuevo, adquirir un usado certificado, reparar o realizar *trade-in*; y recomienda la alternativa más conveniente con costos, evidencia técnica, garantía y condiciones claras.
 
 El diferencial no es reunir cuatro botones o cuatro servicios en una página. El diferencial consiste en desarrollar una **arquitectura de decisión** que:
 
@@ -295,7 +295,7 @@ Si alguno de estos comandos no funciona, se debe instalar la herramienta corresp
 1. Abrir una terminal e ingresar a la carpeta de la aplicación:
 
 ```bash
-cd iphone-direct-colombia-mvp
+cd directphone-co-mvp
 ```
 
 2. Instalar las dependencias declaradas en `package-lock.json`:
@@ -372,7 +372,7 @@ git branch -M main
 Después de crear un repositorio vacío en GitHub:
 
 ```bash
-git remote add origin https://github.com/USUARIO/iphone-direct-colombia-mvp.git
+git remote add origin https://github.com/USUARIO/directphone-co-mvp.git
 git push -u origin main
 ```
 
@@ -383,8 +383,8 @@ No se deben subir contraseñas, tokens, datos personales, archivos `.env` ni bas
 ## 13. Estructura principal del repositorio
 
 ```text
-iphone-direct-colombia-mvp/
-├── CONTEXTO_MAESTRO_MVP_IPHONE_DIRECT_COLOMBIA.md  # Contexto canónico
+directphone-co-mvp/
+├── CONTEXTO_MAESTRO_MVP_DIRECTPHONE_CO.md  # Contexto canónico
 ├── data/
 │   └── catalogo-inventario.csv       # Fuente de verdad del catálogo
 ├── docs/
@@ -759,7 +759,7 @@ demostrativa deberá mantenerse separada y rotulada explícitamente.
 El MVP puede cerrar el recorrido construyendo un enlace con un mensaje prellenado:
 
 ```text
-Hola, completé la guía de iPhone Direct Colombia.
+Hola, completé la guía de DirectPhone Co.
 Mi recomendación fue: [OPCIÓN].
 Mi identificador de sesión es: [ID].
 Quiero continuar con: [ACCIÓN].
